@@ -373,6 +373,7 @@ footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);fo
 // ── CONFIG
 const SHEET_ID   = '1JQ0L723-MVwQIeKcdKL25ScfARsJG6P6tNZivfNOuR8';
 const GEMINI_KEY = 'AIzaSyBSNDD4BI6E4zMXhuVltIUjVjblKfR8vvw';
+const GROQ_KEY   = 'PASTE_GROQ_KEY_HERE'; // optional fallback — free at console.groq.com
 const MAX_LEADS  = 500;
 const REFRESH_MS = 5 * 60 * 1000;
 
@@ -713,8 +714,9 @@ Return ONLY a valid JSON object. No markdown, no backticks, no extra text before
   "top_priority_leads": ["name1","name2","name3","name4"]
 }`;
 
-  // Try models in order until one works
-  const MODELS = [
+  // ── Try Gemini models first, then fall back to Groq
+  const setMeta = txt => { const el=document.getElementById('insMeta'); if(el) el.textContent=txt; };
+  const GEMINI_MODELS = [
     {v:'v1beta', m:'gemini-2.0-flash'},
     {v:'v1beta', m:'gemini-2.0-flash-exp'},
     {v:'v1beta', m:'gemini-1.5-flash-latest'},
@@ -722,40 +724,82 @@ Return ONLY a valid JSON object. No markdown, no backticks, no extra text before
     {v:'v1beta', m:'gemini-1.5-flash'},
     {v:'v1beta', m:'gemini-pro'},
   ];
-  const reqBody = JSON.stringify({
-    contents:[{parts:[{text:prompt}]}],
-    generationConfig:{temperature:0.35, maxOutputTokens:2200}
-  });
-  let lastErr = '';
-  for(const {v, m} of MODELS) {
-    try {
-      document.getElementById('insMeta').textContent = 'Trying ' + m + '...';
-      const resp = await fetch(
-        `https://generativelanguage.googleapis.com/${v}/models/${m}:generateContent?key=${GEMINI_KEY}`,
-        {method:'POST', headers:{'Content-Type':'application/json'}, body:reqBody}
-      );
-      const data = await resp.json();
-      if(data.error){ lastErr = '['+m+'] '+data.error.message; continue; }
-      const raw = data.candidates?.[0]?.content?.parts?.[0]?.text||'';
-      if(!raw){ lastErr = '['+m+'] Empty response'; continue; }
-      const clean = raw.replace(/```json/g,'').replace(/```/g,'').trim();
-      const ins = JSON.parse(clean);
-      saveCache(ins);
-      document.getElementById('insBtn').textContent = '\u21bb Regenerate Insights';
-      const now = new Date();
-      document.getElementById('insMeta').innerHTML =
-        'Model: <b>'+m+'</b> &middot; '+now.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})+
-        ' '+now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})+' &middot; Cached 24 hrs';
-      renderInsights(ins);
-      return;
-    } catch(e){ lastErr = '['+m+'] '+e.message; }
+
+  function finishInsights(ins, modelLabel) {
+    saveCache(ins);
+    document.getElementById('insBtn').textContent = '↻ Regenerate Insights';
+    const now = new Date();
+    document.getElementById('insMeta').innerHTML =
+      'Model: <b>'+modelLabel+'</b> &middot; '+
+      now.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})+' '+
+      now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})+
+      ' &middot; Cached 24 hrs';
+    renderInsights(ins);
   }
+
+  function parseInsights(raw) {
+    const clean = raw.replace(/```json/g,'').replace(/```/g,'').trim();
+    return JSON.parse(clean);
+  }
+
+  // Try Gemini
+  if(GEMINI_KEY && GEMINI_KEY !== 'PASTE_YOUR_GEMINI_KEY_HERE') {
+    const gemBody = JSON.stringify({
+      contents:[{parts:[{text:prompt}]}],
+      generationConfig:{temperature:0.35, maxOutputTokens:2200}
+    });
+    for(const {v, m} of GEMINI_MODELS) {
+      try {
+        setMeta('Trying Gemini ' + m + '…');
+        const resp = await fetch(
+          `https://generativelanguage.googleapis.com/${v}/models/${m}:generateContent?key=${GEMINI_KEY}`,
+          {method:'POST', headers:{'Content-Type':'application/json'}, body:gemBody}
+        );
+        const data = await resp.json();
+        if(data.error) continue;
+        const raw = data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+        if(!raw) continue;
+        finishInsights(parseInsights(raw), 'Gemini ' + m);
+        return;
+      } catch(e) { /* try next */ }
+    }
+  }
+
+  // Fallback: Try Groq (Llama 3.3 70B)
+  if(GROQ_KEY && GROQ_KEY !== 'PASTE_GROQ_KEY_HERE') {
+    try {
+      setMeta('Gemini unavailable — trying Groq Llama 3.3…');
+      const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+        body: JSON.stringify({
+          model:'llama-3.3-70b-versatile',
+          messages:[{role:'user', content:prompt}],
+          max_tokens:2200, temperature:0.35
+        })
+      });
+      const data = await resp.json();
+      if(data.error) throw new Error(data.error.message);
+      const raw = data.choices?.[0]?.message?.content||'';
+      if(!raw) throw new Error('Empty response');
+      finishInsights(parseInsights(raw), 'Groq · Llama 3.3 70B');
+      return;
+    } catch(e) {
+      /* Groq also failed */
+    }
+  }
+
+  // Both failed
   document.getElementById('insBtn').disabled = false;
-  document.getElementById('insBtn').textContent = '\u21bb Retry';
+  document.getElementById('insBtn').textContent = '↻ Retry';
   document.getElementById('insights-body').innerHTML =
-    '<div class="ins-loading" style="color:var(--hot)">\u26a0\ufe0f All Gemini models failed.<br>' +
-    '<small style="color:var(--dim)">'+esc(lastErr)+'</small><br><br>' +
-    '<small>Go to <b>console.cloud.google.com</b> \u2192 APIs &amp; Services \u2192 Enable APIs \u2192 search <b>"Generative Language API"</b> \u2192 Enable it for your project. Then retry.</small></div>';
+    '<div class="ins-loading" style="color:var(--hot);flex-direction:column;gap:12px;text-align:left;align-items:flex-start;padding:20px">'+
+    '<div>⚠️ <b>No AI provider is configured correctly.</b></div>'+
+    '<div style="font-size:12.5px;color:var(--muted);line-height:1.8">'+
+    '<b>Fix Gemini:</b> Go to <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--purple2)">aistudio.google.com/apikey</a> '+
+    '→ Create API key in new project → paste it in the dashboard code as GEMINI_KEY.<br>'+
+    '<b>Or use Groq (free):</b> Go to <a href="https://console.groq.com/keys" target="_blank" style="color:var(--purple2)">console.groq.com/keys</a> '+
+    '→ Create API key → paste as GROQ_KEY.</div></div>';
 }
 
 function renderInsights(ins) {
