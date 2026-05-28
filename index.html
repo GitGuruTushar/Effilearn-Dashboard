@@ -167,6 +167,27 @@ tbody tr:hover{background:rgba(139,61,255,.055)}
 .count-note{font-size:11.5px;color:var(--dim);margin-top:10px;text-align:right}
 .empty-state{padding:42px;text-align:center;color:var(--dim);font-size:14px}
 footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);font-size:11.5px;letter-spacing:.3px;line-height:1.8}
+
+/* SETTINGS MODAL */
+#settingsOverlay{display:none;position:fixed;inset:0;z-index:998;background:rgba(8,6,15,.87);backdrop-filter:blur(6px);align-items:center;justify-content:center}
+#settingsOverlay.open{display:flex}
+.settings-box{background:var(--panel);border:1px solid var(--line2);border-radius:20px;padding:28px;width:min(480px,92vw);box-shadow:0 30px 80px -20px rgba(0,0,0,.7)}
+.settings-box h2{font-size:17px;font-weight:700;margin-bottom:6px}
+.sdesc{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.6}
+.sfield{margin-bottom:16px}
+.sfield label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px;font-weight:600}
+.sfield input{width:100%;background:var(--bg2);border:1px solid var(--line2);border-radius:10px;padding:10px 14px;color:var(--ink);font-family:'Space Mono';font-size:12px;outline:none}
+.sfield input:focus{border-color:var(--purple)}
+.sfield input::placeholder{color:var(--dim)}
+.sfield .hint{font-size:11px;color:var(--dim);margin-top:5px}
+.sfield .hint a{color:var(--purple2)}
+.sbtn-row{display:flex;gap:10px;margin-top:8px}
+.sbtn-save{flex:1;padding:11px;border-radius:12px;border:none;background:linear-gradient(120deg,var(--pink),var(--purple));color:#fff;font-family:'Sora';font-weight:700;font-size:14px;cursor:pointer;transition:.2s}
+.sbtn-save:hover{opacity:.85}
+.sbtn-cancel{padding:11px 18px;border-radius:12px;border:1px solid var(--line2);background:transparent;color:var(--muted);font-family:'Sora';font-size:13px;cursor:pointer}
+.settings-btn{font-size:12px;padding:7px 14px;border-radius:20px;border:1px solid var(--line2);background:transparent;color:var(--muted);cursor:pointer;font-family:'Sora';transition:.2s}
+.settings-btn:hover{color:var(--ink);border-color:var(--purple);background:rgba(139,61,255,.08)}
+.key-ok{font-size:10px;padding:2px 7px;border-radius:8px;background:rgba(45,232,164,.12);color:var(--green);margin-left:5px;vertical-align:middle;font-weight:600}
 </style>
 </head>
 <body>
@@ -192,6 +213,7 @@ footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);fo
       <div class="live-dot"></div>
       <span class="sync-txt" id="lastUpdated">Syncing…</span>
       <button class="refresh-btn" onclick="triggerRefresh()">↻ Refresh Data</button>
+      <button class="settings-btn" onclick="openSettings()">⚙ API Keys</button>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
       <span class="tag">Max leads · <b>500</b></span>
@@ -372,8 +394,8 @@ footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);fo
 <script>
 // ── CONFIG
 const SHEET_ID   = '1JQ0L723-MVwQIeKcdKL25ScfARsJG6P6tNZivfNOuR8';
-const GEMINI_KEY = 'AIzaSyDg2ryP5qD_-EMQWU8694cJ1U8PLa4FgoQ';
-const GROQ_KEY   = 'PASTE_GROQ_KEY_HERE'; // optional fallback — free at console.groq.com
+const GEMINI_KEY = () => localStorage.getItem('effi_gemini_key')||'';
+const GROQ_KEY   = () => localStorage.getItem('effi_groq_key')||'';
 const MAX_LEADS  = 500;
 const REFRESH_MS = 5 * 60 * 1000;
 
@@ -714,16 +736,8 @@ Return ONLY a valid JSON object. No markdown, no backticks, no extra text before
   "top_priority_leads": ["name1","name2","name3","name4"]
 }`;
 
-  // ── Try Gemini models first, then fall back to Groq
+  // ── Try Groq first (primary), then Gemini as fallback
   const setMeta = txt => { const el=document.getElementById('insMeta'); if(el) el.textContent=txt; };
-  const GEMINI_MODELS = [
-    {v:'v1beta', m:'gemini-2.0-flash'},
-    {v:'v1beta', m:'gemini-2.0-flash-exp'},
-    {v:'v1beta', m:'gemini-1.5-flash-latest'},
-    {v:'v1',     m:'gemini-1.5-flash'},
-    {v:'v1beta', m:'gemini-1.5-flash'},
-    {v:'v1beta', m:'gemini-pro'},
-  ];
 
   function finishInsights(ins, modelLabel) {
     saveCache(ins);
@@ -742,8 +756,38 @@ Return ONLY a valid JSON object. No markdown, no backticks, no extra text before
     return JSON.parse(clean);
   }
 
-  // Try Gemini
-  if(GEMINI_KEY && GEMINI_KEY !== 'PASTE_YOUR_GEMINI_KEY_HERE') {
+  // PRIMARY: Groq — Llama 3.3 70B
+  if(GROQ_KEY && GROQ_KEY()) {
+    try {
+      setMeta('Analysing with Groq · Llama 3.3 70B…');
+      const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY()},
+        body: JSON.stringify({
+          model:'llama-3.3-70b-versatile',
+          messages:[{role:'user', content:prompt}],
+          max_tokens:2200, temperature:0.35
+        })
+      });
+      const data = await resp.json();
+      if(data.error) throw new Error(data.error.message);
+      const raw = data.choices?.[0]?.message?.content||'';
+      if(!raw) throw new Error('Empty response from Groq');
+      finishInsights(parseInsights(raw), 'Groq · Llama 3.3 70B');
+      return;
+    } catch(e) {
+      setMeta('Groq failed (' + e.message + ') — trying Gemini…');
+    }
+  }
+
+  // FALLBACK: Gemini
+  if(GEMINI_KEY && GEMINI_KEY()) {
+    const GEMINI_MODELS = [
+      {v:'v1beta', m:'gemini-2.0-flash'},
+      {v:'v1beta', m:'gemini-1.5-flash-latest'},
+      {v:'v1',     m:'gemini-1.5-flash'},
+      {v:'v1beta', m:'gemini-pro'},
+    ];
     const gemBody = JSON.stringify({
       contents:[{parts:[{text:prompt}]}],
       generationConfig:{temperature:0.35, maxOutputTokens:2200}
@@ -752,7 +796,7 @@ Return ONLY a valid JSON object. No markdown, no backticks, no extra text before
       try {
         setMeta('Trying Gemini ' + m + '…');
         const resp = await fetch(
-          `https://generativelanguage.googleapis.com/${v}/models/${m}:generateContent?key=${GEMINI_KEY}`,
+          `https://generativelanguage.googleapis.com/${v}/models/${m}:generateContent?key=${GEMINI_KEY()}`,
           {method:'POST', headers:{'Content-Type':'application/json'}, body:gemBody}
         );
         const data = await resp.json();
@@ -765,41 +809,13 @@ Return ONLY a valid JSON object. No markdown, no backticks, no extra text before
     }
   }
 
-  // Fallback: Try Groq (Llama 3.3 70B)
-  if(GROQ_KEY && GROQ_KEY !== 'PASTE_GROQ_KEY_HERE') {
-    try {
-      setMeta('Gemini unavailable — trying Groq Llama 3.3…');
-      const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
-        body: JSON.stringify({
-          model:'llama-3.3-70b-versatile',
-          messages:[{role:'user', content:prompt}],
-          max_tokens:2200, temperature:0.35
-        })
-      });
-      const data = await resp.json();
-      if(data.error) throw new Error(data.error.message);
-      const raw = data.choices?.[0]?.message?.content||'';
-      if(!raw) throw new Error('Empty response');
-      finishInsights(parseInsights(raw), 'Groq · Llama 3.3 70B');
-      return;
-    } catch(e) {
-      /* Groq also failed */
-    }
-  }
-
-  // Both failed
+  // All failed
   document.getElementById('insBtn').disabled = false;
   document.getElementById('insBtn').textContent = '↻ Retry';
   document.getElementById('insights-body').innerHTML =
-    '<div class="ins-loading" style="color:var(--hot);flex-direction:column;gap:12px;text-align:left;align-items:flex-start;padding:20px">'+
-    '<div>⚠️ <b>No AI provider is configured correctly.</b></div>'+
-    '<div style="font-size:12.5px;color:var(--muted);line-height:1.8">'+
-    '<b>Fix Gemini:</b> Go to <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--purple2)">aistudio.google.com/apikey</a> '+
-    '→ Create API key in new project → paste it in the dashboard code as GEMINI_KEY.<br>'+
-    '<b>Or use Groq (free):</b> Go to <a href="https://console.groq.com/keys" target="_blank" style="color:var(--purple2)">console.groq.com/keys</a> '+
-    '→ Create API key → paste as GROQ_KEY.</div></div>';
+    '<div class="ins-loading" style="color:var(--hot);flex-direction:column;gap:10px;align-items:flex-start;padding:20px">'+
+    '<b>⚠️ Could not reach any AI provider.</b>'+
+    '<div style="font-size:12.5px;color:var(--muted)">Check your internet connection and try again.</div></div>';
 }
 
 function renderInsights(ins) {
@@ -844,10 +860,70 @@ function updateTimestamp(){ setText('lastUpdated','Synced '+new Date().toLocaleT
 function showError(msg){ const el=document.getElementById('errorBox'); if(el){el.textContent=msg;el.style.display='block';} document.getElementById('loadOverlay').style.display='none'; }
 window.triggerRefresh = function(){ document.getElementById('loadOverlay').style.display='flex'; loadSheet(); };
 
+
+// ── SETTINGS
+function openSettings() {
+  const gk = localStorage.getItem('effi_groq_key')||'';
+  const mk = localStorage.getItem('effi_gemini_key')||'';
+  document.getElementById('inputGroq').value   = gk;
+  document.getElementById('inputGemini').value = mk;
+  document.getElementById('groqStatus').innerHTML   = gk   ? '<span class="key-ok">✓ SET</span>' : '';
+  document.getElementById('geminiStatus').innerHTML = mk   ? '<span class="key-ok">✓ SET</span>' : '';
+  document.getElementById('settingsOverlay').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settingsOverlay').classList.remove('open');
+}
+function saveSettings() {
+  const gk = document.getElementById('inputGroq').value.trim();
+  const mk = document.getElementById('inputGemini').value.trim();
+  if(gk)  localStorage.setItem('effi_groq_key',   gk);
+  else    localStorage.removeItem('effi_groq_key');
+  if(mk)  localStorage.setItem('effi_gemini_key', mk);
+  else    localStorage.removeItem('effi_gemini_key');
+  closeSettings();
+  // Show key status on insights button area
+  updateKeyStatus();
+}
+function updateKeyStatus() {
+  const hasKey = GROQ_KEY() || GEMINI_KEY();
+  const meta = document.getElementById('insMeta');
+  if(meta && !hasKey) {
+    meta.innerHTML = '<span style="color:var(--warm)">⚠ No API key set — click ⚙ API Keys to add one</span>';
+  }
+}
+// Close overlay on backdrop click
+document.getElementById('settingsOverlay').addEventListener('click', function(e){
+  if(e.target === this) closeSettings();
+});
+
 // ── INIT
 document.getElementById('footerDate').textContent = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
 loadSheet();
 setInterval(loadSheet, REFRESH_MS);
 </script>
+
+<!-- Settings Modal -->
+<div id="settingsOverlay">
+  <div class="settings-box">
+    <h2>⚙️ AI Provider Settings</h2>
+    <p class="sdesc">Keys are saved in your browser only — never sent to GitHub or any server. Enter at least one key to enable AI insights.</p>
+    <div class="sfield">
+      <label>Groq API Key (recommended — free) <span id="groqStatus"></span></label>
+      <input type="password" id="inputGroq" placeholder="gsk_…">
+      <div class="hint">Get free key at <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> · Llama 3.3 70B · 14,400 req/day free</div>
+    </div>
+    <div class="sfield">
+      <label>Gemini API Key (optional fallback) <span id="geminiStatus"></span></label>
+      <input type="password" id="inputGemini" placeholder="AIza…">
+      <div class="hint">Get key at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> · Enable Generative Language API first</div>
+    </div>
+    <div class="sbtn-row">
+      <button class="sbtn-save" onclick="saveSettings()">Save Keys</button>
+      <button class="sbtn-cancel" onclick="closeSettings()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
