@@ -410,6 +410,10 @@ let dateFromVal = '', dateToVal = '';
 // ── SHEET LOAD (JSONP)
 let _loadTimer = null;
 function loadSheet() {
+  // If a custom Apps Script Data URL is set, use that (most reliable)
+  const dataUrl = localStorage.getItem('effi_data_url');
+  if(dataUrl) { loadFromAppsScript(dataUrl); return; }
+
   const old = document.getElementById('_gviz');
   if(old) old.remove();
   if(_loadTimer) clearTimeout(_loadTimer);
@@ -448,6 +452,41 @@ function loadSheet() {
   };
   document.head.appendChild(s);
 }
+
+
+// Load via Apps Script Web App (returns JSON array of row objects)
+async function loadFromAppsScript(url) {
+  try {
+    const resp = await fetch(url + (url.includes('?')?'&':'?') + 't=' + Date.now());
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    const rows = await resp.json();
+    if(!Array.isArray(rows)) throw new Error('Unexpected data format');
+    const leads = rows.map(r => ({
+      name:(r['Name']||'').toString().trim(),
+      phone:str(r['Phone']), email:str(r['Email']),
+      generatedAt:str(r['Generated At']), source:str(r['Source']),
+      campaign:str(r['Campaign']), course:str(r['Type (Course)']),
+      poc:str(r['POC']), connectedStatus:str(r['Connected Status']),
+      callStatus:str(r['Call Status']), leadStatus:str(r['Lead Status']),
+      resultStatus:str(r['Result Status']), notes:str(r['Notes']),
+      questions:str(r['Questions']), lastCalled:str(r['Last Called']),
+      followUpNote:str(r['Follow-up note']), followUpCall:str(r['FollowUp Call']),
+      lastConnectedStatus:str(r['Last Connected Status']),
+    })).filter(l => l.name);
+    leads.sort((a,b) => smartDate(b.generatedAt)-smartDate(a.generatedAt));
+    allLeads = leads.slice(0,MAX_LEADS).map(classifyLead);
+    const hash = allLeads.length+'|'+(allLeads[0]?.name||'');
+    const changed = hash !== lastHash; lastHash = hash;
+    applyDateFilter(true);
+    updateTimestamp();
+    document.getElementById('loadOverlay').style.display = 'none';
+    if(changed) checkCache();
+  } catch(e) {
+    document.getElementById('loadOverlay').style.display = 'none';
+    showError('⚠️ Could not load from Apps Script URL: ' + e.message + '\n\nCheck the URL is correct and the script is deployed with access set to "Anyone".');
+  }
+}
+function str(v){ return v===null||v===undefined?'':String(v); }
 
 window.effiSheetCb = function(resp) {
   if(_loadTimer) { clearTimeout(_loadTimer); _loadTimer = null; }
@@ -892,27 +931,49 @@ window.triggerRefresh = function(){ document.getElementById('loadOverlay').style
 
 // ── SETTINGS
 function openSettings() {
+  const du = localStorage.getItem('effi_data_url')||'';
   const gk = localStorage.getItem('effi_groq_key')||'';
   const mk = localStorage.getItem('effi_gemini_key')||'';
+  document.getElementById('inputDataUrl').value = du;
   document.getElementById('inputGroq').value   = gk;
   document.getElementById('inputGemini').value = mk;
-  document.getElementById('groqStatus').innerHTML   = gk   ? '<span class="key-ok">✓ SET</span>' : '';
-  document.getElementById('geminiStatus').innerHTML = mk   ? '<span class="key-ok">✓ SET</span>' : '';
+  document.getElementById('dataStatus').innerHTML   = du ? '<span class="key-ok">✓ SET</span>' : '';
+  document.getElementById('groqStatus').innerHTML   = gk ? '<span class="key-ok">✓ SET</span>' : '';
+  document.getElementById('geminiStatus').innerHTML = mk ? '<span class="key-ok">✓ SET</span>' : '';
   document.getElementById('settingsOverlay').classList.add('open');
 }
 function closeSettings() {
   document.getElementById('settingsOverlay').classList.remove('open');
 }
 function saveSettings() {
+  const du = document.getElementById('inputDataUrl').value.trim();
   const gk = document.getElementById('inputGroq').value.trim();
   const mk = document.getElementById('inputGemini').value.trim();
-  if(gk)  localStorage.setItem('effi_groq_key',   gk);
-  else    localStorage.removeItem('effi_groq_key');
-  if(mk)  localStorage.setItem('effi_gemini_key', mk);
-  else    localStorage.removeItem('effi_gemini_key');
+  const hadUrl = localStorage.getItem('effi_data_url');
+  if(du)  localStorage.setItem('effi_data_url', du); else localStorage.removeItem('effi_data_url');
+  if(gk)  localStorage.setItem('effi_groq_key', gk); else localStorage.removeItem('effi_groq_key');
+  if(mk)  localStorage.setItem('effi_gemini_key', mk); else localStorage.removeItem('effi_gemini_key');
   closeSettings();
-  // Show key status on insights button area
   updateKeyStatus();
+  // If data URL changed, reload data immediately
+  if(du !== hadUrl) { document.getElementById('loadOverlay').style.display='flex'; document.getElementById('errorBox').style.display='none'; loadSheet(); }
+}
+function showAppsScriptHelp() {
+  alert('SETUP — Sheet Data URL (one time, ~2 min):\n\n'+
+    '1. Open your Google Sheet\n'+
+    '2. Extensions → Apps Script\n'+
+    '3. Delete any code, paste this:\n\n'+
+    'function doGet() {\n'+
+    '  var s = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Leads");\n'+
+    '  var v = s.getDataRange().getValues();\n'+
+    '  var h = v[0], out = [];\n'+
+    '  for (var i=1;i<v.length;i++){ var o={}; for(var j=0;j<h.length;j++){o[h[j]]=v[i][j];} out.push(o); }\n'+
+    '  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);\n'+
+    '}\n\n'+
+    '4. Click Deploy → New deployment\n'+
+    '5. Type: Web app | Execute as: Me | Who has access: Anyone\n'+
+    '6. Deploy → Authorize → copy the Web App URL (ends in /exec)\n'+
+    '7. Paste that URL in the "Sheet Data URL" field here → Save');
 }
 function updateKeyStatus() {
   const hasKey = GROQ_KEY() || GEMINI_KEY();
@@ -936,7 +997,12 @@ setInterval(loadSheet, REFRESH_MS);
 <div id="settingsOverlay">
   <div class="settings-box">
     <h2>⚙️ AI Provider Settings</h2>
-    <p class="sdesc">Keys are saved in your browser only — never sent to GitHub or any server. Enter at least one key to enable AI insights.</p>
+    <p class="sdesc">Saved in your browser only — never sent to GitHub. Set the Data URL to load leads, and an AI key for insights.</p>
+    <div class="sfield">
+      <label>📊 Sheet Data URL (Apps Script) <span id="dataStatus"></span></label>
+      <input type="text" id="inputDataUrl" placeholder="https://script.google.com/macros/s/…/exec">
+      <div class="hint">Bulletproof way to load your sheet. <a href="#" onclick="showAppsScriptHelp();return false;">Show setup steps →</a></div>
+    </div>
     <div class="sfield">
       <label>Groq API Key (recommended — free) <span id="groqStatus"></span></label>
       <input type="password" id="inputGroq" placeholder="gsk_…">
