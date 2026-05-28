@@ -169,7 +169,7 @@ tbody tr:hover{background:rgba(139,61,255,.055)}
 footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);font-size:11.5px;letter-spacing:.3px;line-height:1.8}
 
 /* SETTINGS MODAL */
-#settingsOverlay{display:none;position:fixed;inset:0;z-index:998;background:rgba(8,6,15,.87);backdrop-filter:blur(6px);align-items:center;justify-content:center}
+#settingsOverlay{display:none;position:fixed;inset:0;z-index:1001;background:rgba(8,6,15,.87);backdrop-filter:blur(6px);align-items:center;justify-content:center}
 #settingsOverlay.open{display:flex}
 .settings-box{background:var(--panel);border:1px solid var(--line2);border-radius:20px;padding:28px;width:min(480px,92vw);box-shadow:0 30px 80px -20px rgba(0,0,0,.7)}
 .settings-box h2{font-size:17px;font-weight:700;margin-bottom:6px}
@@ -196,6 +196,8 @@ footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);fo
   <div class="spinner"></div>
   <div class="load-txt">Syncing leads from Google Sheets…</div>
   <div class="load-sub">Auto-refreshes every 5 min · Last 500 leads</div>
+  <button class="settings-btn" style="margin-top:18px" onclick="openSettings()">⚙ Settings / Change Data Source</button>
+  <div class="load-sub" style="margin-top:10px"><a href="#" onclick="forceShow();return false;" style="color:var(--purple2)">Taking too long? Show dashboard anyway →</a></div>
 </div>
 
 <div id="errorBox"></div>
@@ -394,6 +396,7 @@ footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);fo
 <script>
 // ── CONFIG
 const SHEET_ID   = '1JQ0L723-MVwQIeKcdKL25ScfARsJG6P6tNZivfNOuR8';
+const DEFAULT_DATA_URL = 'https://script.google.com/macros/s/AKfycbw4eGCvJPvIOAOtYzsfakgRT3ww_--EdtTtTcYnDF7oY0tIrg5A1mcln5xHbRKjWT21NQ/exec';
 const GEMINI_KEY = () => localStorage.getItem('effi_gemini_key')||'';
 const GROQ_KEY   = () => localStorage.getItem('effi_groq_key')||'';
 const MAX_LEADS  = 500;
@@ -410,8 +413,8 @@ let dateFromVal = '', dateToVal = '';
 // ── SHEET LOAD (JSONP)
 let _loadTimer = null;
 function loadSheet() {
-  // If a custom Apps Script Data URL is set, use that (most reliable)
-  const dataUrl = localStorage.getItem('effi_data_url');
+  // Use custom Apps Script URL if set, else the built-in default
+  const dataUrl = localStorage.getItem('effi_data_url') || DEFAULT_DATA_URL;
   if(dataUrl) { loadFromAppsScript(dataUrl); return; }
 
   const old = document.getElementById('_gviz');
@@ -483,7 +486,7 @@ async function loadFromAppsScript(url) {
     if(changed) checkCache();
   } catch(e) {
     document.getElementById('loadOverlay').style.display = 'none';
-    showError('⚠️ Could not load from Apps Script URL: ' + e.message + '\n\nCheck the URL is correct and the script is deployed with access set to "Anyone".');
+    showError('⚠️ Could not load data: ' + e.message + '\n\nThis usually means the Apps Script "Who has access" is not set to "Anyone". Re-deploy with access = Anyone, or open ⚙ Settings to change the data source.');
   }
 }
 function str(v){ return v===null||v===undefined?'':String(v); }
@@ -930,6 +933,7 @@ window.triggerRefresh = function(){ document.getElementById('loadOverlay').style
 
 
 // ── SETTINGS
+function forceShow(){ document.getElementById('loadOverlay').style.display='none'; }
 function openSettings() {
   const du = localStorage.getItem('effi_data_url')||'';
   const gk = localStorage.getItem('effi_groq_key')||'';
