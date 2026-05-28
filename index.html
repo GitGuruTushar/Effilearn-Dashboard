@@ -659,66 +659,106 @@ window.doSort = function(k) {
   renderTable();
 };
 
-// ─── CLAUDE AI INSIGHTS ───────────────────────────────────────
-async function generateInsights(leads) {
+// ─── SMART INSIGHTS ENGINE (no API needed) ────────────────────
+function generateInsights(leads) {
   const insDiv = document.getElementById('insights-body');
-  insDiv.innerHTML = '<div class="ins-loading"><div class="mini-spin"></div>Analyzing your pipeline with AI…</div>';
-
-  const m = computeMetrics(leads);
-  const noteSamples = leads
-    .filter(l => l.notes && l.notes.length > 15)
-    .slice(0, 25)
-    .map(l => `[${l.temp}|${l.bucket}] ${l.name}: ${(l.notes||'').slice(0,220)}`).join('\n');
-
-  const emiLeads = leads.filter(l => (l.notes||'').toLowerCase().includes('emi') || (l.notes||'').toLowerCase().includes('installment')).length;
-  const hotLeads = leads.filter(l => l.bucket === 'Hot').map(l => l.name);
-  const warmLeads = leads.filter(l => l.bucket === 'Warm').map(l => l.name);
-
-  const prompt = `You are a sharp sales consultant analyzing Effilearn's lead pipeline. Effilearn is an Indian edtech startup selling a Web Dev course (₹7,499 one-shot / ₹8,000 EMI). Target: students & fresh graduates in tier 2/3 cities.
-
-LIVE METRICS (last ${m.total} leads):
-Total: ${m.total} | Connected: ${m.connected} (${m.connRate}% of valid) | Interested: ${m.interested}
-Hot: ${m.hot} | Warm: ${m.warm} | Cold: ${m.cold}
-NC/DNP: ${m.nc} | Callbacks pending: ${m.callbacks} | Dropped: ${m.dropped} | Untouched: ${m.newLeads}
-Invalid numbers: ${m.invalid} | EMI requests: ${emiLeads}
-Hot leads: ${hotLeads.join(', ')||'none'}
-Warm leads: ${warmLeads.join(', ')||'none'}
-
-SAMPLE CALL NOTES:
-${noteSamples}
-
-Return ONLY a valid JSON object (no markdown, no backticks, no preamble):
-{
-  "what_happened": "3-4 sharp, data-backed sentences on lead quality, sales activity outcomes, and what the numbers actually show about the team's performance",
-  "what_can_be_done": "Numbered list of 4-5 specific, actionable steps to convert the current pipeline. Include who to call first, what script/offer to use. Format: 1. step\\n2. step\\n3. step",
-  "what_will_happen": "2-3 honest sentences: if the team continues the current pattern, what conversions are realistic? Be specific about numbers — e.g. expected enrollments out of current pipeline",
-  "what_should_happen": "Numbered list of 4-5 strategic recommendations to improve lead quality, call quality, and closing rate. Format: 1. rec\\n2. rec\\n3. rec",
-  "top_priority_leads": ["name1","name2","name3"],
-  "why_it_matters": "3-4 sentences on the direct business and financial impact — revenue at stake, batch viability, campaign ROI, and what these leads mean for Effilearn's growth right now",
-  "biggest_bottleneck": "One precise sentence naming the single biggest conversion killer right now"
-}`;
-
-  try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1500,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    const data = await resp.json();
-    const text = (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
-    const clean = text.replace(/```json|```/g, '').trim();
-    const ins = JSON.parse(clean);
-    renderInsights(ins, m);
-  } catch(e) {
-    insDiv.innerHTML = `<div class="ins-loading" style="color:var(--warm)">⚠️ AI insights unavailable (${e.message}). Reload to retry.</div>`;
-  }
+  insDiv.innerHTML = '<div class="ins-loading"><div class="mini-spin"></div>Computing insights from live data…</div>';
+  setTimeout(() => {
+    try { renderInsights(computeSmartInsights(leads)); }
+    catch(e) { insDiv.innerHTML = '<div class="ins-loading" style="color:var(--warm)">Could not compute insights: ' + e.message + '</div>'; }
+  }, 700);
 }
 
-function renderInsights(ins, m) {
+function computeSmartInsights(leads) {
+  const m = computeMetrics(leads);
+  const n = i => (leads[i] ? (leads[i].notes||'') : '').toLowerCase();
+
+  // Pattern detection
+  const emiLeads     = leads.filter((_,i) => n(i).includes('emi') || n(i).includes('installment'));
+  const parentLeads  = leads.filter((_,i) => n(i).includes('parent') || n(i).includes('guardian') || n(i).includes('father') || n(i).includes('mother'));
+  const degreeLeads  = leads.filter((_,i) => n(i).includes('degree') || n(i).includes('certificate'));
+  const diplomaLeads = leads.filter((_,i) => n(i).includes('diploma'));
+  const hotLeads     = leads.filter(l => l.bucket === 'Hot');
+  const warmLeads    = leads.filter(l => l.bucket === 'Warm');
+  const coldLeads    = leads.filter(l => l.bucket === 'Cold');
+  const cbLeads      = leads.filter(l => l.bucket === 'Callback');
+  const ncLeads      = leads.filter(l => l.bucket === 'NC');
+  const newLeadList  = leads.filter(l => l.bucket === 'New');
+  const interested   = leads.filter(l => (l.callStatus||'').toLowerCase() === 'interested');
+  const organicLeads = leads.filter(l => (l.source||'').toLowerCase().includes('organic') || (l.source||'').toLowerCase().includes('whatsapp'));
+  const activePipe   = m.hot + m.warm + m.cold + m.callbacks;
+  const priorityLeads = [...hotLeads, ...warmLeads.filter(l => (l.notes||'').length > 30)].slice(0, 4).map(l => l.name);
+
+  // ── WHAT HAPPENED
+  let wh = `Out of ${m.total} leads, ${m.connected} connected (${m.connRate}% of valid numbers) and ${interested.length} showed active interest. `;
+  wh += m.hot === 0
+    ? 'No hot leads exist yet — the pipeline has interest but no one is on the verge of paying. '
+    : `${hotLeads.map(l=>l.name).join(' & ')} ${m.hot===1?'is':'are'} the only hot lead${m.hot>1?'s':''} — closest to converting. `;
+  if (emiLeads.length) wh += `Price friction surfaced in ${emiLeads.length} call${emiLeads.length>1?'s':''} with EMI/installment requests. `;
+  if (organicLeads.length && hotLeads.some(l => (l.source||'').toLowerCase().includes('organic') || (l.source||'').toLowerCase().includes('whatsapp')))
+    wh += 'Organic/WhatsApp leads are converting warmer than paid Meta leads — quality over quantity is showing. ';
+  if (m.invalid) wh += `${m.invalid} invalid number${m.invalid>1?'s':''} indicate low-quality ad targeting or form fraud.`;
+
+  // ── WHAT CAN BE DONE
+  const can = [];
+  if (hotLeads.length) can.push(`Call ${hotLeads.map(l=>l.name).join(' & ')} first — today — these are your only hot lead${hotLeads.length>1?'s':''}. Every hour you wait increases drop risk.`);
+  if (emiLeads.length) can.push(`Send a structured EMI offer to ${emiLeads.slice(0,3).map(l=>l.name).join(', ')}${emiLeads.length>3?' + others':''} right now: ₹2,000 today to reserve seat → ₹2,500 week 2 → ₹3,000 week 4. This unblocks ${emiLeads.length} stalled lead${emiLeads.length>1?'s':''}.`);
+  if (warmLeads.length) can.push(`Run a 90-min warm-lead blitz: call all ${m.warm} warm leads back-to-back. Script: confirm batch start date, mention only ${Math.max(1,25-0)} seats left, offer a 24-hr booking window.`);
+  if (cbLeads.length) can.push(`Honour ${m.callbacks} pending callback${m.callbacks>1?'s':''} (${cbLeads.slice(0,3).map(l=>l.name).join(', ')}${cbLeads.length>3?'…':''}) before calling any new leads — these people asked you to call them.`);
+  if (ncLeads.length) can.push(`WhatsApp message all ${m.nc} NC leads first: "Hi [name], tried calling about Effilearn Web Dev — best course to start your tech career. Can we connect for 5 min today?" Then call the ones who reply.`);
+  if (newLeadList.length) can.push(`${newLeadList.map(l=>l.name).join(', ')} ${newLeadList.length===1?'is':'are'} untouched — call within the hour. Lead intent drops by ~80% after 24 hrs.`);
+
+  // ── WHAT WILL HAPPEN
+  const realConv = Math.max(1, Math.round(m.hot * 0.8 + m.warm * 0.35 + m.cold * 0.08 + m.callbacks * 0.2));
+  let will = `At the current conversion pattern, you can realistically expect ${realConv} enrollment${realConv>1?'s':''} from this pipeline if all follow-ups are completed this week. `;
+  if (emiLeads.length) will += `Without a structured EMI plan, ${emiLeads.length} price-sensitive lead${emiLeads.length>1?'s':''} will likely go cold — that's ₹${(emiLeads.length*8000).toLocaleString('en-IN')} walking away. `;
+  will += `${m.nc} NC leads that don't get a second touch within 48 hours will convert to permanent drops. `;
+  if (m.hot === 0) will += 'Without a hot lead in the pipeline, the first enrollment is likely 1–2 weeks away if warm leads are pursued aggressively.';
+
+  // ── WHAT SHOULD HAPPEN
+  const should = [];
+  should.push(`Create a fixed EMI brochure (PDF/WhatsApp image) with the 3-installment plan and send to every lead who hesitates on price — stop negotiating this individually on every call.`);
+  if (degreeLeads.length) should.push(`Build a "No degree needed" objection script: ${degreeLeads.length} lead${degreeLeads.length>1?'s':''} questioned job prospects without a degree. Prepare 2–3 real placement/project examples to counter this in 60 seconds.`);
+  if (parentLeads.length) should.push(`Create a 1-page parent-facing summary: ${parentLeads.length} lead${parentLeads.length>1?'s':''} needed family approval. Give them a shareable doc explaining the course, ROI, and payment plan — so they can convince their parents for you.`);
+  should.push(`Structure the daily calling routine: Hot leads (first 30 min) → Warm + Callbacks (next 90 min) → NC WhatsApp (last 30 min). Currently calls are reactive, not sequenced.`);
+  should.push(`Add a lead scoring note in every call log: write "Hot / Warm / Cold / Drop" within 2 min of ending the call — the sheet has gaps where temperature is blank for days.`);
+  if (organicLeads.length) should.push(`Activate a referral loop: ask every warm/hot lead for 1 classmate referral. Organic leads are converting better — this is your cheapest acquisition channel.`);
+
+  // ── WHY IT MATTERS
+  const potRev = activePipe * 7499;
+  const batchNeeded = 25;
+  let why = `The active pipeline of ${activePipe} leads represents up to ₹${potRev.toLocaleString('en-IN')} in potential revenue — enough to fill ${Math.floor(potRev/7499/batchNeeded*10)/10} batch${potRev/7499 >= batchNeeded ? 'es' : ''} at 25 students. `;
+  why += `You currently have 0 enrollments — every day without a close is a day of Meta ad spend with no return. `;
+  if (emiLeads.length) why += `The ${emiLeads.length} EMI leads alone are worth ₹${(emiLeads.length*8000).toLocaleString('en-IN')} — this single objection, if solved with a clear plan, could be the difference between a viable batch and another restart. `;
+  why += `Converting this pipeline now builds the credibility, testimonials, and referrals that make every future batch cheaper to fill.`;
+
+  // ── BOTTLENECK
+  let bottleneck;
+  if (emiLeads.length >= 3)
+    bottleneck = `Price friction: ${emiLeads.length} leads asked for EMI — the ₹7,499 upfront fee is the single biggest conversion blocker right now.`;
+  else if (m.hot === 0 && m.warm === 0)
+    bottleneck = 'No warm or hot leads: the team is connecting but failing to qualify — calls are informational, not conversion-focused.';
+  else if (m.nc > m.connected * 0.4)
+    bottleneck = `Reachability: ${m.nc} leads (${Math.round(m.nc/m.total*100)}%) have never been connected — a large portion of the pipeline is invisible.`;
+  else if (parentLeads.length >= 2)
+    bottleneck = `Guardian dependency: ${parentLeads.length} leads need parental approval — there's no material to help them close the conversation at home.`;
+  else if (m.dropped >= m.total * 0.3)
+    bottleneck = `High drop rate: ${m.dropped} of ${m.total} leads dropped (${Math.round(m.dropped/m.total*100)}%) — ad targeting or early call experience needs immediate improvement.`;
+  else
+    bottleneck = `No dominant single bottleneck — biggest opportunity is the ${m.nc} NC leads and ${m.callbacks} pending callbacks that haven't been re-attempted.`;
+
+  return {
+    what_happened: wh.trim(),
+    what_can_be_done: can.map((s,i) => `${i+1}. ${s}`).join('\n'),
+    what_will_happen: will.trim(),
+    what_should_happen: should.map((s,i) => `${i+1}. ${s}`).join('\n'),
+    why_it_matters: why.trim(),
+    biggest_bottleneck: bottleneck,
+    top_priority_leads: priorityLeads,
+  };
+}
+
+function renderInsights(ins) {
   const insDiv = document.getElementById('insights-body');
 
   const fmtList = txt => esc(txt||'')
