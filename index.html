@@ -13,9 +13,8 @@
   --pink:#ff3fa0;--pink2:#ff72bb;--pink3:#ffa8d8;
   --purple:#8b3dff;--purple2:#b06bff;
   --hot:#ff3b6b;--warm:#ff9d3d;--cold:#3db4ff;
-  --green:#2de8a4;--orange:#ff7b3d;
+  --green:#2de8a4;--orange:#ff7b3d;--gold:#ffd23d;
   --glow-p:0 0 0 1px rgba(139,61,255,.2),0 20px 60px -20px rgba(139,61,255,.4);
-  --glow-k:0 0 0 1px rgba(255,63,160,.2),0 20px 60px -20px rgba(255,63,160,.4);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -29,103 +28,67 @@ body{
   padding:32px clamp(14px,4vw,52px) 80px;
   -webkit-font-smoothing:antialiased;
 }
-.mono{font-family:'Space Mono',monospace}
-
-/* ── LOADING ── */
-#loadOverlay{
-  position:fixed;inset:0;z-index:999;
-  background:rgba(8,6,15,.92);backdrop-filter:blur(8px);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
-}
-.spinner{
-  width:44px;height:44px;border-radius:50%;
-  border:3px solid rgba(255,63,160,.15);
-  border-top-color:var(--pink);
-  animation:spin .8s linear infinite;
-}
+/* LOADING */
+#loadOverlay{position:fixed;inset:0;z-index:999;background:rgba(8,6,15,.92);backdrop-filter:blur(8px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+.spinner{width:44px;height:44px;border-radius:50%;border:3px solid rgba(255,63,160,.15);border-top-color:var(--pink);animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .load-txt{font-size:14px;color:var(--muted);letter-spacing:.5px}
 .load-sub{font-size:12px;color:var(--dim)}
-
-/* ── ERROR ── */
-#errorBox{
-  display:none;max-width:1320px;margin:0 auto 20px;
-  padding:14px 18px;border-radius:12px;
-  background:rgba(255,59,107,.1);border:1px solid rgba(255,59,107,.3);
-  color:#ff8fa8;font-size:13px;line-height:1.6;
-}
-
-/* ── HEADER ── */
-header{max-width:1320px;margin:0 auto 28px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:16px}
+/* ERROR */
+#errorBox{display:none;max-width:1320px;margin:0 auto 20px;padding:14px 18px;border-radius:12px;background:rgba(255,59,107,.1);border:1px solid rgba(255,59,107,.3);color:#ff8fa8;font-size:13px;line-height:1.6}
+/* HEADER */
+header{max-width:1320px;margin:0 auto 24px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:16px}
 .brand{display:flex;align-items:center;gap:14px}
-.logo{
-  width:48px;height:48px;border-radius:14px;flex-shrink:0;
-  background:linear-gradient(135deg,var(--pink),var(--purple));
-  display:grid;place-items:center;font-weight:800;font-size:22px;color:#fff;
-  box-shadow:0 8px 28px -8px var(--purple);
-}
+.logo{width:48px;height:48px;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,var(--pink),var(--purple));display:grid;place-items:center;font-weight:800;font-size:22px;color:#fff;box-shadow:0 8px 28px -8px var(--purple)}
 .brand h1{font-size:clamp(18px,2.2vw,26px);font-weight:700;letter-spacing:-.4px}
 .brand .sub{color:var(--muted);font-size:12.5px;margin-top:4px}
 .header-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .sync-strip{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-.live-dot{
-  width:8px;height:8px;border-radius:50%;background:var(--green);
-  box-shadow:0 0 8px var(--green);
-  animation:pulse 2s ease-in-out infinite;
-}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.85)}}
 .sync-txt{font-size:12px;color:var(--dim);font-family:'Space Mono'}
-.refresh-btn{
-  font-size:12px;padding:7px 14px;border-radius:20px;
-  border:1px solid var(--line2);background:transparent;color:var(--muted);
-  cursor:pointer;font-family:'Sora';transition:.2s;
-}
+.refresh-btn{font-size:12px;padding:7px 14px;border-radius:20px;border:1px solid var(--line2);background:transparent;color:var(--muted);cursor:pointer;font-family:'Sora';transition:.2s}
 .refresh-btn:hover{color:var(--ink);border-color:var(--purple);background:rgba(139,61,255,.08)}
 .tag{font-size:11.5px;padding:6px 12px;border-radius:24px;border:1px solid var(--line2);color:var(--muted);background:rgba(255,255,255,.015)}
 .tag b{color:var(--pink2);font-weight:600}
-
-/* ── NOTICE ── */
-.notice{
-  max-width:1320px;margin:0 auto 14px;padding:12px 16px;border-radius:10px;
-  background:rgba(255,157,61,.07);border:1px solid rgba(255,157,61,.2);
-  font-size:12.5px;color:#ffb96b;display:flex;align-items:center;gap:8px;
-}
-.notice a{color:var(--warm);text-decoration:underline}
-
-/* ── KPIs ── */
-.kpis{max-width:1320px;margin:0 auto 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px}
-.kpi{
-  position:relative;
-  background:linear-gradient(155deg,var(--panel),var(--bg2));
-  border:1px solid var(--line);border-radius:18px;padding:20px 18px 16px;overflow:hidden;
-}
+/* NOTICE */
+.notice{max-width:1320px;margin:0 auto 14px;padding:12px 16px;border-radius:10px;background:rgba(255,157,61,.07);border:1px solid rgba(255,157,61,.2);font-size:12.5px;color:#ffb96b;display:flex;align-items:center;gap:8px}
+/* DATE FILTER */
+.datecard{max-width:1320px;margin:0 auto 14px}
+.datefilter{display:flex;flex-wrap:wrap;align-items:center;gap:16px;padding:16px 20px}
+.datefilter-title{font-size:11.5px;text-transform:uppercase;letter-spacing:1.6px;color:var(--dim);font-weight:600;white-space:nowrap}
+.date-inputs{display:flex;flex-wrap:wrap;align-items:center;gap:10px;flex:1}
+.date-group{display:flex;align-items:center;gap:8px}
+.date-group label{font-size:12px;color:var(--muted);white-space:nowrap}
+.date-group input[type=date]{background:var(--bg2);border:1px solid var(--line2);border-radius:10px;padding:8px 12px;color:var(--ink);font-family:'Sora';font-size:12.5px;outline:none;cursor:pointer;min-width:140px}
+.date-group input[type=date]:focus{border-color:var(--purple)}
+.date-group input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.6) sepia(1) saturate(3) hue-rotate(240deg);cursor:pointer}
+.date-actions{display:flex;gap:8px}
+.btn-apply{font-size:12.5px;padding:8px 18px;border-radius:20px;border:none;background:linear-gradient(120deg,var(--pink),var(--purple));color:#fff;cursor:pointer;font-family:'Sora';font-weight:600;transition:.2s}
+.btn-apply:hover{opacity:.85;transform:translateY(-1px)}
+.btn-clear{font-size:12px;padding:8px 14px;border-radius:20px;border:1px solid var(--line2);background:transparent;color:var(--muted);cursor:pointer;font-family:'Sora';transition:.2s}
+.btn-clear:hover{color:var(--ink);border-color:var(--dim)}
+.filter-info{font-size:11.5px;color:var(--green);font-family:'Space Mono';white-space:nowrap;margin-left:auto}
+/* KPIs */
+.kpis{max-width:1320px;margin:0 auto 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
+.kpi{position:relative;background:linear-gradient(155deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:18px;padding:18px 16px 14px;overflow:hidden}
 .kpi::after{content:'';position:absolute;inset:0;background:linear-gradient(155deg,transparent,rgba(139,61,255,.04));pointer-events:none}
-.kpi .num{font-size:38px;font-weight:800;letter-spacing:-1.5px;line-height:1}
-.kpi .lbl{color:var(--muted);font-size:12px;margin-top:8px;letter-spacing:.3px}
-.kpi .pill{
-  position:absolute;top:14px;right:14px;
-  font-size:10px;padding:4px 8px;border-radius:16px;font-weight:700;
-}
+.kpi .num{font-size:34px;font-weight:800;letter-spacing:-1.2px;line-height:1}
+.kpi .num.pct{font-size:28px}
+.kpi .lbl{color:var(--muted);font-size:11.5px;margin-top:8px;letter-spacing:.3px}
+.kpi .pill{position:absolute;top:12px;right:12px;font-size:10px;padding:3px 8px;border-radius:14px;font-weight:700}
 .kpi.accent .num{background:linear-gradient(120deg,var(--pink2),var(--purple2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .pill-g{background:rgba(45,232,164,.12);color:var(--green)}
 .pill-w{background:rgba(255,157,61,.12);color:var(--warm)}
+.pill-p{background:rgba(139,61,255,.14);color:var(--purple2)}
 .pill-d{background:rgba(95,75,120,.2);color:var(--dim)}
-
-/* ── GRID ── */
+/* GRID */
 .grid{max-width:1320px;margin:14px auto 0;display:grid;grid-template-columns:1.2fr 1fr;gap:14px}
 @media(max-width:860px){.grid{grid-template-columns:1fr}}
-.card{
-  background:linear-gradient(155deg,var(--panel),var(--bg2));
-  border:1px solid var(--line);border-radius:18px;padding:22px;
-}
-.card h3{
-  font-size:11.5px;text-transform:uppercase;letter-spacing:1.8px;
-  color:var(--dim);margin-bottom:20px;font-weight:600;
-  display:flex;align-items:center;gap:8px;
-}
+.card{background:linear-gradient(155deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:18px;padding:22px}
+.card h3{font-size:11.5px;text-transform:uppercase;letter-spacing:1.8px;color:var(--dim);margin-bottom:20px;font-weight:600;display:flex;align-items:center;gap:8px}
 .card h3 .hdot{width:7px;height:7px;border-radius:50%;background:linear-gradient(120deg,var(--pink),var(--purple))}
-
-/* ── TEMP BARS ── */
+/* TEMP BARS */
 .tbar{margin-bottom:14px}
 .tbar:last-of-type{margin-bottom:0}
 .tbar .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
@@ -134,94 +97,57 @@ header{max-width:1320px;margin:0 auto 28px;display:flex;flex-wrap:wrap;justify-c
 .tval{font-family:'Space Mono';font-size:12.5px;color:var(--muted)}
 .track{height:10px;background:rgba(255,255,255,.04);border-radius:6px;overflow:hidden}
 .tfill{height:100%;border-radius:6px;width:0;transition:width 1.3s cubic-bezier(.2,.8,.2,1)}
-
-/* ── FUNNEL ── */
+/* FUNNEL */
 .funnel{display:flex;flex-direction:column;gap:9px}
 .frow{display:flex;align-items:center;gap:12px}
 .flbl{width:115px;font-size:12px;color:var(--muted);text-align:right;flex-shrink:0;line-height:1.3}
-.fbar{
-  height:32px;border-radius:8px;display:flex;align-items:center;
-  padding-left:12px;font-weight:700;font-size:13.5px;color:#fff;
-  min-width:28px;width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1);
-  white-space:nowrap;overflow:hidden;font-family:'Space Mono';
-}
-
-/* ── PIPELINE CHIPS ── */
+.fbar{height:32px;border-radius:8px;display:flex;align-items:center;padding-left:12px;font-weight:700;font-size:13.5px;color:#fff;min-width:28px;width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1);white-space:nowrap;overflow:hidden;font-family:'Space Mono'}
+/* PIPELINE CHIPS */
 .pipecard{max-width:1320px;margin:14px auto 0}
 .pipe{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
-.chip{
-  border:1px solid var(--line);border-radius:14px;padding:14px 13px;
-  background:rgba(255,255,255,.012);cursor:pointer;transition:.25s;
-}
+.chip{border:1px solid var(--line);border-radius:14px;padding:14px 13px;background:rgba(255,255,255,.012);cursor:pointer;transition:.25s}
 .chip:hover{border-color:var(--line2);transform:translateY(-3px);box-shadow:var(--glow-p)}
 .chip .cn{font-size:28px;font-weight:800;letter-spacing:-1px;line-height:1}
 .chip .cl{font-size:11px;color:var(--muted);margin-top:5px}
-
-/* ── INSIGHTS ── */
+/* INSIGHTS */
 .inscard{max-width:1320px;margin:14px auto 0}
-.ins-loading{
-  padding:24px;text-align:center;
-  color:var(--muted);font-size:13px;
-  display:flex;align-items:center;justify-content:center;gap:10px;
-}
-.ins-loading .mini-spin{
-  width:18px;height:18px;border-radius:50%;
-  border:2px solid rgba(255,63,160,.2);border-top-color:var(--pink);
-  animation:spin .7s linear infinite;flex-shrink:0;
-}
+.ins-btn-row{display:flex;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.gen-btn{font-size:13px;padding:10px 22px;border-radius:22px;border:none;background:linear-gradient(120deg,var(--pink),var(--purple));color:#fff;cursor:pointer;font-family:'Sora';font-weight:600;transition:.2s;display:flex;align-items:center;gap:8px}
+.gen-btn:hover{opacity:.85;transform:translateY(-1px);box-shadow:0 8px 24px -8px var(--purple)}
+.gen-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.gen-meta{font-size:11.5px;color:var(--dim);font-family:'Space Mono'}
+.gen-meta b{color:var(--green)}
+.ins-loading{padding:24px;text-align:center;color:var(--muted);font-size:13px;display:flex;align-items:center;justify-content:center;gap:10px}
+.ins-loading .mini-spin{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,63,160,.2);border-top-color:var(--pink);animation:spin .7s linear infinite;flex-shrink:0}
 .ins-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
-.ins-card{
-  border-radius:14px;padding:18px;
-  background:rgba(255,255,255,.02);
-  border:1px solid var(--line);
-  display:flex;gap:14px;
-}
+.ins-card{border-radius:14px;padding:18px;background:rgba(255,255,255,.02);border:1px solid var(--line);display:flex;gap:14px}
 .ins-card.pink{border-left:3px solid var(--pink)}
 .ins-card.purple{border-left:3px solid var(--purple2)}
 .ins-card.orange{border-left:3px solid var(--orange)}
 .ins-card.green{border-left:3px solid var(--green)}
 .ins-card.grey{border-left:3px solid var(--dim)}
-.full-width{grid-column:1 / -1}
+.ins-card.gold{border-left:3px solid var(--gold)}
+.full-width{grid-column:1/-1}
 .ins-icon{font-size:22px;flex-shrink:0;margin-top:2px}
 .ins-title{font-size:11.5px;text-transform:uppercase;letter-spacing:1.4px;color:var(--dim);margin-bottom:8px;font-weight:600}
 .ins-text{font-size:13px;color:var(--muted);line-height:1.7}
 .ins-text br{display:block;margin-top:3px}
-.plead{
-  display:inline-block;font-size:11px;padding:3px 9px;
-  border-radius:12px;background:rgba(255,63,160,.1);
-  color:var(--pink2);margin:4px 4px 0 0;
-}
+.plead{display:inline-block;font-size:11px;padding:3px 9px;border-radius:12px;background:rgba(255,63,160,.1);color:var(--pink2);margin:4px 4px 0 0}
 .ins-leads{margin-top:10px}
-
-/* ── TABLE ── */
+/* TABLE */
 .tablecard{max-width:1320px;margin:14px auto 0}
 .filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;align-items:center}
-.fbtn{
-  font-size:12px;padding:8px 14px;border-radius:24px;
-  border:1px solid var(--line2);background:transparent;
-  color:var(--muted);cursor:pointer;font-family:'Sora';transition:.2s;font-weight:500;
-}
+.fbtn{font-size:12px;padding:8px 14px;border-radius:24px;border:1px solid var(--line2);background:transparent;color:var(--muted);cursor:pointer;font-family:'Sora';transition:.2s;font-weight:500}
 .fbtn:hover{color:var(--ink);border-color:var(--purple)}
 .fbtn.active{background:linear-gradient(120deg,var(--pink),var(--purple));color:#fff;border-color:transparent}
-.search{
-  margin-left:auto;background:var(--bg2);
-  border:1px solid var(--line2);border-radius:24px;
-  padding:9px 16px;color:var(--ink);font-family:'Sora';
-  font-size:13px;min-width:190px;outline:none;
-}
+.search{margin-left:auto;background:var(--bg2);border:1px solid var(--line2);border-radius:24px;padding:9px 16px;color:var(--ink);font-family:'Sora';font-size:13px;min-width:190px;outline:none}
 .search:focus{border-color:var(--purple)}
 .tablewrap{overflow-x:auto;border-radius:14px;border:1px solid var(--line)}
 table{width:100%;border-collapse:collapse;min-width:820px}
-thead th{
-  position:sticky;top:0;background:var(--panel2);
-  text-align:left;font-size:10.5px;text-transform:uppercase;
-  letter-spacing:.9px;color:var(--dim);padding:12px 14px;font-weight:600;
-  border-bottom:1px solid var(--line2);cursor:pointer;user-select:none;white-space:nowrap;
-}
+thead th{position:sticky;top:0;background:var(--panel2);text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);padding:12px 14px;font-weight:600;border-bottom:1px solid var(--line2);cursor:pointer;user-select:none;white-space:nowrap}
 thead th:hover{color:var(--pink2)}
 tbody td{padding:13px 14px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}
 tbody tr:last-child td{border-bottom:none}
-tbody tr{transition:.15s}
 tbody tr:hover{background:rgba(139,61,255,.055)}
 .lname{font-weight:600;font-size:13.5px}
 .lcontact{font-size:11px;color:var(--dim);margin-top:3px;font-family:'Space Mono'}
@@ -232,35 +158,27 @@ tbody tr:hover{background:rgba(139,61,255,.055)}
 .b-cold{background:rgba(61,180,255,.14);color:var(--cold)}
 .b-cb{background:rgba(176,107,255,.14);color:var(--purple2)}
 .b-nc{background:rgba(94,77,122,.18);color:#8e7ab0}
-.b-later{background:rgba(255,210,61,.12);color:#ffd23d}
+.b-later{background:rgba(255,210,61,.12);color:var(--gold)}
 .b-drop{background:rgba(100,90,120,.14);color:#8a80a4}
 .b-new{background:rgba(45,232,164,.12);color:var(--green)}
 .note{color:var(--muted);font-size:12.5px;line-height:1.55;max-width:400px}
-.note em{color:var(--dim);font-style:italic;font-size:11.5px}
 .dimtxt{color:var(--dim);font-family:'Space Mono';font-size:11.5px;white-space:nowrap}
 .smalltxt{font-family:'Space Mono';font-size:11.5px;color:var(--cold)}
 .count-note{font-size:11.5px;color:var(--dim);margin-top:10px;text-align:right}
-
-/* ── FOOTER ── */
-footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);font-size:11.5px;letter-spacing:.3px;line-height:1.8}
-
-/* ── EMPTY ── */
 .empty-state{padding:42px;text-align:center;color:var(--dim);font-size:14px}
+footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);font-size:11.5px;letter-spacing:.3px;line-height:1.8}
 </style>
 </head>
 <body>
 
-<!-- Loading -->
 <div id="loadOverlay">
   <div class="spinner"></div>
   <div class="load-txt">Syncing leads from Google Sheets…</div>
-  <div class="load-sub">Showing last 500 leads · Auto-refreshes every 5 min</div>
+  <div class="load-sub">Auto-refreshes every 5 min · Last 500 leads</div>
 </div>
 
-<!-- Error -->
 <div id="errorBox"></div>
 
-<!-- Header -->
 <header>
   <div class="brand">
     <div class="logo">E</div>
@@ -273,29 +191,83 @@ footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);fo
     <div class="sync-strip">
       <div class="live-dot"></div>
       <span class="sync-txt" id="lastUpdated">Syncing…</span>
-      <button class="refresh-btn" onclick="triggerRefresh()">↻ Refresh</button>
+      <button class="refresh-btn" onclick="triggerRefresh()">↻ Refresh Data</button>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
       <span class="tag">Max leads · <b>500</b></span>
-      <span class="tag">Campaign · <b>Meta 21 May</b></span>
-      <span class="tag" id="headerTotal">Total · <b>—</b></span>
+      <span class="tag" id="headerTotal">Showing · <b>—</b></span>
     </div>
   </div>
 </header>
 
-<!-- Sheet-public notice -->
 <div class="notice">
-  ⚠️ For live sync to work, your Google Sheet must be set to <strong>"Anyone with the link can view"</strong>.
-  Go to <em>Share → Change to anyone with the link → Viewer → Done</em>. You only need to do this once.
+  ⚠️ For live sync, ensure your Google Sheet is set to <strong>"Anyone with the link can view"</strong> — Share → Change → Viewer.
 </div>
 
-<!-- KPIs -->
+<!-- DATE RANGE FILTER -->
+<section class="datecard">
+  <div class="card datefilter">
+    <span class="datefilter-title">📅 Date Range</span>
+    <div class="date-inputs">
+      <div class="date-group">
+        <label>From</label>
+        <input type="date" id="dateFrom">
+      </div>
+      <div class="date-group">
+        <label>To</label>
+        <input type="date" id="dateTo">
+      </div>
+      <div class="date-actions">
+        <button class="btn-apply" onclick="applyDateFilter()">Apply Filter</button>
+        <button class="btn-clear" onclick="clearDateFilter()">Clear</button>
+      </div>
+    </div>
+    <span class="filter-info" id="filterInfo">Showing last 500 leads</span>
+  </div>
+</section>
+
+<!-- KPIs — 8 cards -->
 <section class="kpis">
-  <div class="kpi accent"><div class="num" id="kpi-total">—</div><div class="lbl">Total Leads</div><span class="pill pill-g">Live</span></div>
-  <div class="kpi"><div class="num" id="kpi-connected">—</div><div class="lbl">Connected</div><span class="pill pill-g" id="kpi-conn-pct">—</span></div>
-  <div class="kpi"><div class="num" id="kpi-interested">—</div><div class="lbl">Interested</div><span class="pill pill-w">Active</span></div>
-  <div class="kpi"><div class="num" id="kpi-hot" style="color:var(--hot)">—</div><div class="lbl">Hot / Ready</div><span class="pill pill-w">Top priority</span></div>
-  <div class="kpi"><div class="num" id="kpi-dropped" style="color:var(--dim)">—</div><div class="lbl">Dropped</div><span class="pill pill-d">Closed lost</span></div>
+  <div class="kpi accent">
+    <div class="num" id="kpi-total">—</div>
+    <div class="lbl">Total Leads</div>
+    <span class="pill pill-g">Live</span>
+  </div>
+  <div class="kpi">
+    <div class="num" id="kpi-connected">—</div>
+    <div class="lbl">Connected</div>
+    <span class="pill pill-g" id="pill-conn">—</span>
+  </div>
+  <div class="kpi">
+    <div class="num pct" id="kpi-conn-rate" style="color:var(--green)">—</div>
+    <div class="lbl">Connection Rate</div>
+    <span class="pill pill-g">of valid</span>
+  </div>
+  <div class="kpi">
+    <div class="num" id="kpi-interested">—</div>
+    <div class="lbl">Interested</div>
+    <span class="pill pill-w">Active</span>
+  </div>
+  <div class="kpi">
+    <div class="num" id="kpi-hw" style="color:var(--warm)">—</div>
+    <div class="lbl">Hot + Warm</div>
+    <span class="pill pill-w">Prospects</span>
+  </div>
+  <div class="kpi">
+    <div class="num pct" id="kpi-prospect-rate" style="color:var(--warm)">—</div>
+    <div class="lbl">Prospect Ratio</div>
+    <span class="pill pill-w">of total</span>
+  </div>
+  <div class="kpi">
+    <div class="num pct" id="kpi-conv-rate" style="color:var(--green)">—</div>
+    <div class="lbl">Conversion Rate</div>
+    <span class="pill pill-d">Enrolled</span>
+  </div>
+  <div class="kpi">
+    <div class="num" id="kpi-dropped" style="color:var(--dim)">—</div>
+    <div class="lbl">Dropped</div>
+    <span class="pill pill-d">Closed lost</span>
+  </div>
 </section>
 
 <!-- Charts -->
@@ -316,7 +288,6 @@ footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);fo
     </div>
     <div class="count-note" style="margin-top:14px" id="tempNote">Of temperature-tagged leads only</div>
   </div>
-
   <div class="card">
     <h3><span class="hdot"></span> Contact Funnel</h3>
     <div class="funnel">
@@ -324,7 +295,7 @@ footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);fo
       <div class="frow"><span class="flbl">Valid numbers</span><div class="fbar" id="f-valid" style="background:linear-gradient(90deg,#7240e0,#9654ee)"></div></div>
       <div class="frow"><span class="flbl">Connected</span><div class="fbar" id="f-connected" style="background:linear-gradient(90deg,#a040cc,#c058f0)"></div></div>
       <div class="frow"><span class="flbl">Interested</span><div class="fbar" id="f-interested" style="background:linear-gradient(90deg,var(--pink),#ff72bb)"></div></div>
-      <div class="frow"><span class="flbl">Warm + Hot</span><div class="fbar" id="f-warmhot" style="background:linear-gradient(90deg,#ff4d9d,#ffa24d)"></div></div>
+      <div class="frow"><span class="flbl">Hot + Warm</span><div class="fbar" id="f-warmhot" style="background:linear-gradient(90deg,#ff4d9d,#ffa24d)"></div></div>
     </div>
     <div class="count-note" style="margin-top:14px">Connection rate: <span id="f-rate" style="color:var(--green);font-weight:600">—</span> of valid leads</div>
   </div>
@@ -333,14 +304,14 @@ footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);fo
 <!-- Pipeline chips -->
 <section class="pipecard">
   <div class="card">
-    <h3><span class="hdot"></span> Pipeline Buckets <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--dim);font-size:11px;margin-left:6px">(click to filter table below)</span></h3>
+    <h3><span class="hdot"></span> Pipeline Buckets <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--dim);font-size:11px;margin-left:6px">(click to filter table)</span></h3>
     <div class="pipe">
       <div class="chip" onclick="setFilter('Hot')"><div class="cn" style="color:var(--hot)" id="chip-hot">—</div><div class="cl">🔥 Hot</div></div>
       <div class="chip" onclick="setFilter('Warm')"><div class="cn" style="color:var(--warm)" id="chip-warm">—</div><div class="cl">🌤 Warm</div></div>
       <div class="chip" onclick="setFilter('Cold')"><div class="cn" style="color:var(--cold)" id="chip-cold">—</div><div class="cl">❄️ Cold</div></div>
       <div class="chip" onclick="setFilter('Callback')"><div class="cn" style="color:var(--purple2)" id="chip-cb">—</div><div class="cl">📞 Callbacks</div></div>
       <div class="chip" onclick="setFilter('NC')"><div class="cn" style="color:var(--muted)" id="chip-nc">—</div><div class="cl">🔇 NC / DNP</div></div>
-      <div class="chip" onclick="setFilter('Later')"><div class="cn" style="color:#ffd23d" id="chip-later">—</div><div class="cl">⏳ For Later</div></div>
+      <div class="chip" onclick="setFilter('Later')"><div class="cn" style="color:var(--gold)" id="chip-later">—</div><div class="cl">⏳ For Later</div></div>
       <div class="chip" onclick="setFilter('Dropped')"><div class="cn" style="color:var(--dim)" id="chip-drop">—</div><div class="cl">✖ Dropped</div></div>
       <div class="chip" onclick="setFilter('New')"><div class="cn" style="color:var(--green)" id="chip-new">—</div><div class="cl">🆕 Untouched</div></div>
     </div>
@@ -350,16 +321,20 @@ footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);fo
 <!-- AI Insights -->
 <section class="inscard">
   <div class="card">
-    <h3><span class="hdot"></span> AI Pipeline Insights <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--dim);font-size:11px;margin-left:6px">— powered by Claude · refreshes with data</span></h3>
+    <h3><span class="hdot"></span> AI Pipeline Insights — Gemini 1.5 Flash</h3>
+    <div class="ins-btn-row">
+      <button class="gen-btn" id="insBtn" onclick="triggerInsights()">✨ Generate Insights</button>
+      <span class="gen-meta" id="insMeta"></span>
+    </div>
     <div id="insights-body">
-      <div class="ins-loading"><div class="mini-spin"></div>Waiting for data…</div>
+      <div class="ins-loading" style="color:var(--dim)">Click "Generate Insights" to analyse the current pipeline with Gemini AI.</div>
     </div>
   </div>
 </section>
 
 <!-- Lead Table -->
 <section class="card tablecard">
-  <h3><span class="hdot"></span> All Leads — Responses & Full Detail</h3>
+  <h3><span class="hdot"></span> All Leads — Full Detail</h3>
   <div class="filters">
     <button class="fbtn active" data-filter="all" onclick="setFilter('all')">All</button>
     <button class="fbtn" data-filter="Hot" onclick="setFilter('Hot')">Hot</button>
@@ -379,7 +354,7 @@ footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);fo
           <th onclick="doSort('name')">Lead ↕</th>
           <th onclick="doSort('temp')">Status ↕</th>
           <th onclick="doSort('date')">Came In ↕</th>
-          <th>Response / Notes</th>
+          <th>Notes & Response</th>
           <th onclick="doSort('fu')">Follow-up ↕</th>
         </tr>
       </thead>
@@ -390,24 +365,26 @@ footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);fo
 </section>
 
 <footer>
-  Effilearn Lead Intelligence · Live sync from Google Sheets · Last 500 leads only · Auto-refreshes every 5 min<br>
+  Effilearn Lead Intelligence · Live from Google Sheets · Last 500 leads · Auto-refresh every 5 min<br>
   Built for Tushar · <span id="footerDate"></span>
 </footer>
 
 <script>
-// ─── CONFIG ───────────────────────────────────────────────────
-const SHEET_ID = '1JQ0L723-MVwQIeKcdKL25ScfARsJG6P6tNZivfNOuR8';
-const MAX_LEADS = 500;
+// ── CONFIG
+const SHEET_ID   = '1JQ0L723-MVwQIeKcdKL25ScfARsJG6P6tNZivfNOuR8';
+const GEMINI_KEY = 'AIzaSyBSNDD4BI6E4zMXhuVltIUjVjblKfR8vvw';
+const MAX_LEADS  = 500;
 const REFRESH_MS = 5 * 60 * 1000;
 
-// ─── STATE ────────────────────────────────────────────────────
-let allLeads = [];
+// ── STATE
+let allLeads    = [];   // all leads from sheet (max 500, newest first)
+let activeLeads = [];   // date-filtered subset shown in dashboard
 let currentFilter = 'all';
-let sortKey = 'date';
-let sortDir = -1;
+let sortKey = 'date', sortDir = -1;
 let lastHash = '';
+let dateFromVal = '', dateToVal = '';
 
-// ─── LOAD GOOGLE SHEET ────────────────────────────────────────
+// ── SHEET LOAD (JSONP)
 function loadSheet() {
   const old = document.getElementById('_gviz');
   if (old) old.remove();
@@ -415,494 +392,400 @@ function loadSheet() {
   s.id = '_gviz';
   s.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:_effiData&sheet=Leads&t=${Date.now()}`;
   s.onerror = () => {
-    showError('⚠️ Could not load sheet. Make sure it is set to "Anyone with the link can view" in Google Sheets Share settings.');
+    showError('Could not load sheet. Ensure it is set to "Anyone with the link can view".');
     document.getElementById('loadOverlay').style.display = 'none';
   };
   document.head.appendChild(s);
 }
 
-// ─── GVIZ CALLBACK ────────────────────────────────────────────
 window._effiData = function(resp) {
   try {
     const table = resp.table;
-    // Build col index map by label
     const cm = {};
-    table.cols.forEach((c, i) => { cm[(c.label || c.id || '').trim()] = i; });
-
-    // Positional fallback if label not found
+    table.cols.forEach((c,i) => { cm[(c.label||c.id||'').trim()] = i; });
     const POS = ['Name','Phone','Email','Generated At','Source','Campaign','Type (Course)','POC',
                  'Connected Status','Call Status','Lead Status','Result Status','Notes','Questions',
                  'Last Called','Follow-up note','FollowUp Call','Last Connected Status'];
-    POS.forEach((k, i) => { if (!(k in cm)) cm[k] = i; });
-
+    POS.forEach((k,i) => { if(!(k in cm)) cm[k]=i; });
     const get = (row, key) => {
       const idx = cm[key];
-      if (idx === undefined || !row.c || !row.c[idx]) return '';
+      if(idx===undefined||!row.c||!row.c[idx]) return '';
       const cell = row.c[idx];
-      if (!cell) return '';
-      if (cell.v === null || cell.v === undefined) return cell.f || '';
+      if(!cell||cell.v===null||cell.v===undefined) return cell?.f||'';
       const v = String(cell.v);
-      if (v.startsWith('Date(')) return parseGvizDate(v);
-      return v;
+      return v.startsWith('Date(') ? parseGvizDate(v) : v;
     };
-
     const leads = [];
-    (table.rows || []).forEach(row => {
-      const name = (get(row,'Name') || '').trim();
-      if (!name || name.length < 1) return;
+    (table.rows||[]).forEach(row => {
+      const name = (get(row,'Name')||'').trim();
+      if(!name) return;
       leads.push({
-        name, phone: get(row,'Phone'), email: get(row,'Email'),
-        generatedAt: get(row,'Generated At'), source: get(row,'Source'),
-        campaign: get(row,'Campaign'), course: get(row,'Type (Course)'),
-        poc: get(row,'POC'), connectedStatus: get(row,'Connected Status'),
-        callStatus: get(row,'Call Status'), leadStatus: get(row,'Lead Status'),
-        resultStatus: get(row,'Result Status'), notes: get(row,'Notes'),
-        questions: get(row,'Questions'), lastCalled: get(row,'Last Called'),
-        followUpNote: get(row,'Follow-up note'), followUpCall: get(row,'FollowUp Call'),
-        lastConnectedStatus: get(row,'Last Connected Status'),
+        name, phone:get(row,'Phone'), email:get(row,'Email'),
+        generatedAt:get(row,'Generated At'), source:get(row,'Source'),
+        campaign:get(row,'Campaign'), course:get(row,'Type (Course)'),
+        poc:get(row,'POC'), connectedStatus:get(row,'Connected Status'),
+        callStatus:get(row,'Call Status'), leadStatus:get(row,'Lead Status'),
+        resultStatus:get(row,'Result Status'), notes:get(row,'Notes'),
+        questions:get(row,'Questions'), lastCalled:get(row,'Last Called'),
+        followUpNote:get(row,'Follow-up note'), followUpCall:get(row,'FollowUp Call'),
+        lastConnectedStatus:get(row,'Last Connected Status'),
       });
     });
-
-    // Sort by date descending, cap at MAX_LEADS
-    leads.sort((a, b) => smartDate(b.generatedAt) - smartDate(a.generatedAt));
-    const trimmed = leads.slice(0, MAX_LEADS).map(classifyLead);
-
-    // Only re-render + re-insight if data changed
-    const hash = trimmed.length + '|' + (trimmed[0]?.name || '') + '|' + (trimmed[trimmed.length-1]?.name || '');
+    leads.sort((a,b) => smartDate(b.generatedAt)-smartDate(a.generatedAt));
+    allLeads = leads.slice(0,MAX_LEADS).map(classifyLead);
+    const hash = allLeads.length+'|'+(allLeads[0]?.name||'')+'|'+(allLeads[allLeads.length-1]?.name||'');
     const changed = hash !== lastHash;
     lastHash = hash;
-    allLeads = trimmed;
-
-    renderDashboard(allLeads);
+    applyDateFilter(true); // re-apply current date range
     updateTimestamp();
     document.getElementById('loadOverlay').style.display = 'none';
-
-    if (changed) generateInsights(allLeads);
+    // Show cached insights if available and data changed (don't auto-call Gemini)
+    if(changed) checkCache();
   } catch(e) {
-    showError('Parse error: ' + e.message + '. Please refresh.');
+    showError('Parse error: '+e.message);
     document.getElementById('loadOverlay').style.display = 'none';
   }
 };
 
 function parseGvizDate(s) {
   const m = s.match(/Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?\)/);
-  if (!m) return s;
-  return new Date(+m[1], +m[2], +m[3], +(m[4]||0), +(m[5]||0), +(m[6]||0)).toISOString();
+  if(!m) return s;
+  return new Date(+m[1],+m[2],+m[3],+(m[4]||0),+(m[5]||0),+(m[6]||0)).toISOString();
 }
+function smartDate(s) { if(!s) return 0; const d=new Date(s); return isNaN(d)?0:d.getTime(); }
 
-function smartDate(s) {
-  if (!s) return 0;
-  const d = new Date(s);
-  return isNaN(d) ? 0 : d.getTime();
-}
-
-// ─── CLASSIFY LEAD ────────────────────────────────────────────
+// ── CLASSIFY
 function classifyLead(lead) {
-  const ls = (lead.leadStatus || '').toLowerCase().trim();
-  const rs = (lead.resultStatus || '').toLowerCase().trim();
-  const cs = (lead.callStatus || '').toLowerCase().trim();
-  const conn = (lead.connectedStatus || '').toLowerCase().trim();
-  const hasAny = ls || rs || cs || conn;
-
-  let bucket = 'NC', temp = 'NC', badge = 'b-nc';
-
-  if (!hasAny) {
-    bucket = 'New'; temp = 'Untouched'; badge = 'b-new';
-  } else if (rs === 'dropped' || cs === 'not interested' || ls === 'not interested' || ls === 'invalid number' || cs === 'invalid number' || ls.includes('answered disconnected') || cs === 'answered disconnected') {
-    bucket = 'Dropped'; temp = 'Dropped'; badge = 'b-drop';
-  } else if (ls === 'hot') {
-    bucket = 'Hot'; temp = 'Hot'; badge = 'b-hot';
-  } else if (ls === 'warm') {
-    bucket = 'Warm'; temp = 'Warm'; badge = 'b-warm';
-  } else if (ls === 'cold') {
-    bucket = 'Cold'; temp = 'Cold'; badge = 'b-cold';
-  } else if (ls.includes('call back') || ls.includes('requested call') || cs === 'call back') {
-    bucket = 'Callback'; temp = 'Callback'; badge = 'b-cb';
-  } else if (ls === 'for later' || ls.includes('later next month') || ls.includes('will pursue')) {
-    bucket = 'Later'; temp = 'For Later'; badge = 'b-later';
-  } else if (ls.startsWith('nc') || cs === 'dnp' || conn === 'not connected') {
-    bucket = 'NC'; temp = 'NC'; badge = 'b-nc';
-  }
-
-  return { ...lead, bucket, temp, badge };
+  const ls=(lead.leadStatus||'').toLowerCase().trim();
+  const rs=(lead.resultStatus||'').toLowerCase().trim();
+  const cs=(lead.callStatus||'').toLowerCase().trim();
+  const conn=(lead.connectedStatus||'').toLowerCase().trim();
+  const hasAny = ls||rs||cs||conn;
+  let bucket='NC', temp='NC', badge='b-nc';
+  if(!hasAny){ bucket='New'; temp='Untouched'; badge='b-new'; }
+  else if(rs==='dropped'||cs==='not interested'||ls==='not interested'||ls==='invalid number'||cs==='invalid number'||ls.includes('answered disconnected')||cs==='answered disconnected')
+    { bucket='Dropped'; temp='Dropped'; badge='b-drop'; }
+  else if(ls==='hot'){ bucket='Hot'; temp='Hot'; badge='b-hot'; }
+  else if(ls==='warm'){ bucket='Warm'; temp='Warm'; badge='b-warm'; }
+  else if(ls==='cold'){ bucket='Cold'; temp='Cold'; badge='b-cold'; }
+  else if(ls.includes('call back')||ls.includes('requested call')||cs==='call back')
+    { bucket='Callback'; temp='Callback'; badge='b-cb'; }
+  else if(ls==='for later'||ls.includes('later next month')||ls.includes('will pursue'))
+    { bucket='Later'; temp='For Later'; badge='b-later'; }
+  else if(ls.startsWith('nc')||cs==='dnp'||conn==='not connected')
+    { bucket='NC'; temp='NC'; badge='b-nc'; }
+  return {...lead, bucket, temp, badge};
 }
 
-// ─── METRICS ─────────────────────────────────────────────────
+// ── DATE RANGE FILTER
+function applyDateFilter(silent) {
+  if(!silent) {
+    dateFromVal = document.getElementById('dateFrom').value;
+    dateToVal   = document.getElementById('dateTo').value;
+  }
+  if(dateFromVal || dateToVal) {
+    const from = dateFromVal ? new Date(dateFromVal) : null;
+    const to   = dateToVal   ? new Date(dateToVal+'T23:59:59') : null;
+    activeLeads = allLeads.filter(l => {
+      if(!l.generatedAt) return true;
+      const d = new Date(l.generatedAt);
+      if(isNaN(d)) return true;
+      if(from && d < from) return false;
+      if(to   && d > to)   return false;
+      return true;
+    });
+    const fromStr = dateFromVal ? new Date(dateFromVal).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}) : '…';
+    const toStr   = dateToVal   ? new Date(dateToVal).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}) : '…';
+    setText('filterInfo', `${fromStr} → ${toStr} · ${activeLeads.length} leads`);
+  } else {
+    activeLeads = [...allLeads];
+    setText('filterInfo', `Showing last ${activeLeads.length} leads`);
+  }
+  renderDashboard(activeLeads);
+  if(!silent) checkCache();
+}
+function clearDateFilter() {
+  document.getElementById('dateFrom').value = '';
+  document.getElementById('dateTo').value   = '';
+  dateFromVal = ''; dateToVal = '';
+  applyDateFilter(false);
+}
+
+// ── METRICS
 function computeMetrics(leads) {
   const bk = {};
-  leads.forEach(l => { bk[l.bucket] = (bk[l.bucket] || 0) + 1; });
-  const connected = leads.filter(l => (l.connectedStatus||'').toLowerCase() === 'connected').length;
-  const interested = leads.filter(l => (l.callStatus||'').toLowerCase() === 'interested').length;
-  const invalid = leads.filter(l => {
-    const ls = (l.leadStatus||'').toLowerCase();
-    const cs = (l.callStatus||'').toLowerCase();
-    return ls === 'invalid number' || cs === 'invalid number';
-  }).length;
-  const total = leads.length;
+  leads.forEach(l => { bk[l.bucket]=(bk[l.bucket]||0)+1; });
+  const connected  = leads.filter(l=>(l.connectedStatus||'').toLowerCase()==='connected').length;
+  const interested = leads.filter(l=>(l.callStatus||'').toLowerCase()==='interested').length;
+  const enrolled   = 0; // update this when you start tracking enrollments
+  const invalid    = leads.filter(l=>{const ls=(l.leadStatus||'').toLowerCase(),cs=(l.callStatus||'').toLowerCase();return ls==='invalid number'||cs==='invalid number';}).length;
+  const total      = leads.length;
   const validLeads = total - invalid;
-  const connRate = validLeads > 0 ? Math.round(connected / validLeads * 100) : 0;
+  const hw         = (bk.Hot||0)+(bk.Warm||0);
   return {
-    total, connected, interested, invalid, validLeads, connRate,
-    hot: bk.Hot||0, warm: bk.Warm||0, cold: bk.Cold||0,
-    callbacks: bk.Callback||0, nc: bk.NC||0, later: bk.Later||0,
-    dropped: bk.Dropped||0, newLeads: bk.New||0,
+    total, connected, interested, enrolled, invalid, validLeads,
+    hot:bk.Hot||0, warm:bk.Warm||0, cold:bk.Cold||0, hw,
+    callbacks:bk.Callback||0, nc:bk.NC||0, later:bk.Later||0,
+    dropped:bk.Dropped||0, newLeads:bk.New||0,
+    connRate:    validLeads>0 ? Math.round(connected/validLeads*100)  : 0,
+    prospectRate:total>0      ? Math.round(hw/total*100)              : 0,
+    convRate:    total>0      ? Math.round(enrolled/total*100)        : 0,
   };
 }
 
-// ─── RENDER DASHBOARD ─────────────────────────────────────────
+// ── RENDER
 function renderDashboard(leads) {
   const m = computeMetrics(leads);
-  setText('kpi-total', m.total);
-  setText('kpi-connected', m.connected);
-  setText('kpi-interested', m.interested);
-  setText('kpi-hot', m.hot);
-  setText('kpi-dropped', m.dropped);
-  setText('kpi-conn-pct', m.connRate + '%');
-  setText('headerTotal', '—'); // will set below
-  document.getElementById('headerTotal').innerHTML = `Total · <b>${m.total}</b>`;
-
-  const tTotal = Math.max(1, m.hot + m.warm + m.cold);
-  setBar('bar-hot', m.hot / tTotal * 100);
-  setBar('bar-warm', m.warm / tTotal * 100);
-  setBar('bar-cold', m.cold / tTotal * 100);
-  setText('lbl-hot', `${m.hot} · ${Math.round(m.hot/tTotal*100)}%`);
+  // KPIs
+  setText('kpi-total',         m.total);
+  setText('kpi-connected',     m.connected);
+  setText('kpi-conn-rate',     m.connRate+'%');
+  setText('pill-conn',         m.connRate+'%');
+  setText('kpi-interested',    m.interested);
+  setText('kpi-hw',            m.hw);
+  setText('kpi-prospect-rate', m.prospectRate+'%');
+  setText('kpi-conv-rate',     m.convRate+'%');
+  setText('kpi-dropped',       m.dropped);
+  document.getElementById('headerTotal').innerHTML = `Showing · <b>${m.total}</b>`;
+  // Temp bars
+  const tTotal = Math.max(1, m.hot+m.warm+m.cold);
+  setBar('bar-hot',  m.hot/tTotal*100);
+  setBar('bar-warm', m.warm/tTotal*100);
+  setBar('bar-cold', m.cold/tTotal*100);
+  setText('lbl-hot',  `${m.hot} · ${Math.round(m.hot/tTotal*100)}%`);
   setText('lbl-warm', `${m.warm} · ${Math.round(m.warm/tTotal*100)}%`);
   setText('lbl-cold', `${m.cold} · ${Math.round(m.cold/tTotal*100)}%`);
-  document.getElementById('tempNote').textContent = `Based on ${tTotal} temperature-tagged lead${tTotal!==1?'s':''}`;
-
+  setText('tempNote', `Based on ${tTotal} temperature-tagged lead${tTotal!==1?'s':''}`);
+  // Funnel
   const fMax = Math.max(1, m.total);
-  setFBar('f-total', m.total, fMax);
-  setFBar('f-valid', m.validLeads, fMax);
+  setFBar('f-total',     m.total,    fMax);
+  setFBar('f-valid',     m.validLeads,fMax);
   setFBar('f-connected', m.connected, fMax);
-  setFBar('f-interested', m.interested, fMax);
-  setFBar('f-warmhot', m.warm + m.hot, fMax);
-  setText('f-rate', m.connRate + '%');
-
-  setText('chip-hot', m.hot); setText('chip-warm', m.warm);
-  setText('chip-cold', m.cold); setText('chip-cb', m.callbacks);
-  setText('chip-nc', m.nc); setText('chip-later', m.later);
-  setText('chip-drop', m.dropped); setText('chip-new', m.newLeads);
-
+  setFBar('f-interested',m.interested,fMax);
+  setFBar('f-warmhot',   m.hw,        fMax);
+  setText('f-rate', m.connRate+'%');
+  // Chips
+  setText('chip-hot',   m.hot);  setText('chip-warm',  m.warm);
+  setText('chip-cold',  m.cold); setText('chip-cb',    m.callbacks);
+  setText('chip-nc',    m.nc);   setText('chip-later', m.later);
+  setText('chip-drop',  m.dropped); setText('chip-new', m.newLeads);
   renderTable();
 }
 
-function setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
-function setBar(id, pct) { setTimeout(() => { const el = document.getElementById(id); if (el) el.style.width = Math.max(0, pct) + '%'; }, 200); }
-function setFBar(id, val, max) {
-  setTimeout(() => {
-    const el = document.getElementById(id);
-    if (el) { el.style.width = Math.max(4, val/max*100) + '%'; el.textContent = val; }
-  }, 200);
-}
+function setText(id,v){ const el=document.getElementById(id); if(el) el.textContent=v; }
+function setBar(id,pct){ setTimeout(()=>{ const el=document.getElementById(id); if(el) el.style.width=Math.max(0,pct)+'%'; },200); }
+function setFBar(id,val,max){ setTimeout(()=>{ const el=document.getElementById(id); if(el){ el.style.width=Math.max(4,val/max*100)+'%'; el.textContent=val; } },200); }
 
-// ─── TABLE ───────────────────────────────────────────────────
+// ── TABLE
 function renderTable() {
-  const q = (document.getElementById('search')?.value || '').toLowerCase();
-  const ORDER = { Hot:0, Warm:1, Cold:2, Callback:3, New:4, NC:5, Later:6, Dropped:7 };
-
-  let rows = allLeads.filter(l =>
-    (currentFilter === 'all' || l.bucket === currentFilter) &&
-    (!q || l.name.toLowerCase().includes(q) || (l.notes||'').toLowerCase().includes(q) || (l.questions||'').toLowerCase().includes(q))
-  );
-
-  rows.sort((a, b) => {
-    let r = 0;
-    if (sortKey === 'name') r = a.name.localeCompare(b.name);
-    else if (sortKey === 'date') r = smartDate(a.generatedAt) - smartDate(b.generatedAt);
-    else if (sortKey === 'temp') r = (ORDER[a.bucket]||5) - (ORDER[b.bucket]||5);
-    else if (sortKey === 'fu') r = (a.followUpCall||'').localeCompare(b.followUpCall||'');
-    return r * sortDir;
+  const q=(document.getElementById('search')?.value||'').toLowerCase();
+  const ORDER={Hot:0,Warm:1,Cold:2,Callback:3,New:4,NC:5,Later:6,Dropped:7};
+  let rows=activeLeads.filter(l=>(currentFilter==='all'||l.bucket===currentFilter)&&(!q||l.name.toLowerCase().includes(q)||(l.notes||'').toLowerCase().includes(q)||(l.questions||'').toLowerCase().includes(q)));
+  rows.sort((a,b)=>{
+    let r=0;
+    if(sortKey==='name') r=a.name.localeCompare(b.name);
+    else if(sortKey==='date') r=smartDate(a.generatedAt)-smartDate(b.generatedAt);
+    else if(sortKey==='temp') r=(ORDER[a.bucket]||5)-(ORDER[b.bucket]||5);
+    else if(sortKey==='fu') r=(a.followUpCall||'').localeCompare(b.followUpCall||'');
+    return r*sortDir;
   });
-
-  const tbody = document.getElementById('tbody');
-  if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No leads match this filter.</td></tr>`;
-  } else {
-    tbody.innerHTML = rows.map(l => `
-      <tr>
-        <td>
-          <div class="lname">${esc(l.name)}</div>
-          <div class="lcontact">${esc(l.phone)}</div>
-          <div class="profile">${esc(parseProfile(l.questions))}</div>
-        </td>
+  const tbody=document.getElementById('tbody');
+  tbody.innerHTML = rows.length
+    ? rows.map(l=>`<tr>
+        <td><div class="lname">${esc(l.name)}</div><div class="lcontact">${esc(l.phone)}</div><div class="profile">${esc(parseProfile(l.questions))}</div></td>
         <td><span class="badge ${l.badge}">${esc(l.temp)}</span><div style="font-size:10.5px;color:var(--dim);margin-top:5px">${esc(l.callStatus||'')}</div></td>
         <td class="dimtxt">${fmtDate(l.generatedAt)}</td>
         <td><div class="note">${esc(l.notes||'—')}</div></td>
-        <td class="smalltxt">${esc(l.followUpCall || l.lastCalled || '—')}</td>
-      </tr>`).join('');
+        <td class="smalltxt">${esc(l.followUpCall||l.lastCalled||'—')}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" class="empty-state">No leads match this filter.</td></tr>';
+  setText('countNote', `Showing ${rows.length} of ${activeLeads.length} leads`);
+}
+
+function parseProfile(q){ if(!q) return ''; return q.split(',').map(p=>p.trim()).filter(Boolean).slice(0,2).join(' · '); }
+function fmtDate(d){ if(!d) return '—'; const dt=new Date(d); return isNaN(dt)?d.slice(0,10):dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'2-digit'}); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+window.setFilter = function(f){ currentFilter=f; document.querySelectorAll('.fbtn').forEach(b=>b.classList.toggle('active',b.dataset.filter===f)); renderTable(); };
+window.doSort   = function(k){ if(sortKey===k) sortDir*=-1; else{ sortKey=k; sortDir=1; } renderTable(); };
+
+// ── INSIGHT CACHE (localStorage)
+function cacheKey() {
+  const f = dateFromVal||'all', t = dateToVal||'all';
+  return `effi_ins_${SHEET_ID}_${f}_${t}_${activeLeads.length}`;
+}
+function saveCache(ins) {
+  try { localStorage.setItem(cacheKey(), JSON.stringify({ins, ts:Date.now()})); } catch{}
+}
+function loadCache() {
+  try {
+    const raw = localStorage.getItem(cacheKey());
+    if(!raw) return null;
+    const {ins, ts} = JSON.parse(raw);
+    const ageH = (Date.now()-ts)/3600000;
+    if(ageH > 24) { localStorage.removeItem(cacheKey()); return null; }
+    return {ins, ts};
+  } catch{ return null; }
+}
+function checkCache() {
+  const cached = loadCache();
+  if(cached) {
+    const when = new Date(cached.ts).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    const whenDate = new Date(cached.ts).toLocaleDateString('en-IN',{day:'2-digit',month:'short'});
+    setText('insMeta', '');
+    document.getElementById('insMeta').innerHTML = `Last generated: <b>${whenDate} ${when}</b> · Click to regenerate`;
+    document.getElementById('insBtn').textContent = '↻ Regenerate Insights';
+    renderInsights(cached.ins);
+  } else {
+    document.getElementById('insBtn').textContent = '✨ Generate Insights';
+    setText('insMeta', 'Cached for 24 hrs · Uses Gemini 1.5 Flash');
+    document.getElementById('insights-body').innerHTML = '<div class="ins-loading" style="color:var(--dim)">Click "Generate Insights" to analyse the pipeline with Gemini AI.</div>';
   }
-  document.getElementById('countNote').textContent = `Showing ${rows.length} of ${allLeads.length} leads (max 500 most recent)`;
 }
 
-function parseProfile(q) {
-  if (!q) return '';
-  return q.split(',').map(p => p.trim()).filter(Boolean).slice(0, 2).join(' · ');
-}
-function fmtDate(d) {
-  if (!d) return '—';
-  const dt = new Date(d);
-  if (isNaN(dt)) return d.slice(0, 10);
-  return dt.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'2-digit'});
-}
-function esc(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-window.setFilter = function(f) {
-  currentFilter = f;
-  document.querySelectorAll('.fbtn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
-  renderTable();
+// ── MANUAL INSIGHTS TRIGGER
+window.triggerInsights = async function() {
+  const btn = document.getElementById('insBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Analysing…';
+  setText('insMeta', 'Gemini is reading all lead data…');
+  document.getElementById('insights-body').innerHTML = '<div class="ins-loading"><div class="mini-spin"></div>Gemini AI is analysing your full pipeline…</div>';
+  await generateInsights(activeLeads);
+  btn.disabled = false;
 };
 
-window.doSort = function(k) {
-  if (sortKey === k) sortDir *= -1; else { sortKey = k; sortDir = 1; }
-  renderTable();
-};
-
-// ─── GEMINI AI INSIGHTS ───────────────────────────────────────
-const GEMINI_KEY = 'AIzaSyBSNDD4BI6E4zMXhuVltIUjVjblKfR8vvw';
-
+// ── GEMINI INSIGHTS
 async function generateInsights(leads) {
-  const insDiv = document.getElementById('insights-body');
-  insDiv.innerHTML = '<div class="ins-loading"><div class="mini-spin"></div>Analyzing pipeline with Gemini AI…</div>';
-
-  if (!GEMINI_KEY || GEMINI_KEY === 'PASTE_YOUR_GEMINI_KEY_HERE') {
-    insDiv.innerHTML = '<div class="ins-loading" style="color:var(--warm)">⚠️ Gemini API key not set. Add your key to enable AI insights.</div>';
-    return;
-  }
-
   const m = computeMetrics(leads);
 
-  // Send ALL notes (not just samples) — full context for Gemini
-  const fullLeadData = leads.map(l =>
-    `Name: ${l.name} | Status: ${l.bucket}/${l.temp} | Call: ${l.callStatus} | Result: ${l.resultStatus||'—'} | Source: ${l.source} | Profile: ${(l.questions||'').slice(0,120)} | Notes: ${(l.notes||'—').slice(0,400)}`
-  ).join('\n');
+  // Build full lead data — every field, every lead
+  const fullLeadData = leads.map((l,i) => [
+    `── Lead ${i+1}: ${l.name}`,
+    `   Created   : ${l.generatedAt||'—'}`,
+    `   Phone     : ${l.phone||'—'} | Email: ${l.email||'—'}`,
+    `   Source    : ${l.source||'—'} | Campaign: ${l.campaign||'—'}`,
+    `   Course    : ${l.course||'—'} | POC: ${l.poc||'—'}`,
+    `   Connected : ${l.connectedStatus||'—'} | Last Connected: ${l.lastConnectedStatus||'—'}`,
+    `   Call      : ${l.callStatus||'—'} | Lead Status: ${l.leadStatus||'—'}`,
+    `   Result    : ${l.resultStatus||'—'} | Bucket: ${l.bucket} | Temp: ${l.temp}`,
+    `   Form Resp : ${l.questions||'—'}`,
+    `   Notes     : ${l.notes||'No notes'}`,
+    `   Last Call : ${l.lastCalled||'—'} | Follow-up: ${l.followUpCall||'—'}`,
+    `   FU Note   : ${l.followUpNote||'—'}`,
+  ].join('\n')).join('\n\n');
 
-  const prompt = `You are a sharp, no-nonsense sales coach analyzing Effilearn's live lead pipeline.
+  const dateCtx = (dateFromVal||dateToVal)
+    ? `DATE FILTER ACTIVE: ${dateFromVal||'any'} to ${dateToVal||'any'} (${leads.length} leads in range)`
+    : `Showing last ${leads.length} leads (no date filter)`;
+
+  const prompt = `You are a sharp, experienced sales coach and edtech growth consultant. Analyse Effilearn's live lead pipeline in full detail.
 
 ABOUT EFFILEARN:
-- Indian edtech startup, Web Development course
-- Price: ₹7,499 one-shot / ₹8,000 in installments
-- Batch size: 25 students max
-- Target audience: 12th pass / first-year college students, tier 2/3 cities, career starters
-- POC doing all calls: Tushar (founder/CEO)
-- Campaign: Meta ads launched 21 May 2026
-- Current enrollments: 0
+- Indian edtech startup · Web Development course
+- Price: ₹7,499 one-shot / ₹8,000 in installments (3 parts)
+- Max batch size: 25 students
+- Target: 12th pass / early college, tier 2-3 cities, career starters
+- Calls done by: Tushar (founder/CEO)
+- Campaign: Meta ads, launched 21 May 2026
+- Enrollments so far: 0
+- ${dateCtx}
 
-PIPELINE METRICS (${m.total} total leads):
-Total: ${m.total} | Valid numbers: ${m.validLeads} | Connected: ${m.connected} (${m.connRate}% connection rate)
-Hot: ${m.hot} | Warm: ${m.warm} | Cold: ${m.cold}
-Callbacks pending: ${m.callbacks} | NC/DNP: ${m.nc} | Dropped: ${m.dropped} | Untouched: ${m.newLeads}
-Interested (call status): ${m.interested} | Invalid numbers: ${m.invalid}
+PIPELINE SUMMARY:
+Total: ${m.total} | Valid: ${m.validLeads} | Connected: ${m.connected} (${m.connRate}%)
+Hot: ${m.hot} | Warm: ${m.warm} | Cold: ${m.cold} | Hot+Warm: ${m.hw}
+Prospect Ratio: ${m.prospectRate}% | Conversion Rate: ${m.convRate}%
+Callbacks: ${m.callbacks} | NC/DNP: ${m.nc} | Dropped: ${m.dropped} | Untouched: ${m.newLeads}
+Invalid numbers: ${m.invalid}
 
-EVERY LEAD — FULL DATA:
+COMPLETE LEAD DATA (every field, every lead):
 ${fullLeadData}
 
-Analyze everything above deeply. Read each lead's notes carefully. Identify patterns across calls. Return ONLY a valid JSON object with no markdown, no backticks, no preamble:
+Read every lead carefully. Identify patterns across notes. Spot common objections, stalling reasons, geography patterns, timing issues. Be specific — name leads, quote note patterns, give numbers.
+
+Return ONLY a valid JSON object. No markdown, no backticks, no extra text before or after:
 {
-  "what_happened": "3-5 sharp sentences. What does the data actually show? What patterns appeared across multiple leads? What is the team doing well and poorly? Be specific — name leads, cite note patterns, reference numbers.",
-  "what_can_be_done": "5-6 specific, prioritized actions with lead names where relevant. Format each on a new line starting with a number: 1. action\\n2. action",
-  "what_will_happen": "2-3 honest, data-driven predictions. If current behavior continues unchanged, what happens to this pipeline? Give realistic enrollment estimates.",
-  "what_should_happen": "5-6 strategic recommendations to improve lead quality, call quality, objection handling, and conversion rate. Be specific to what you saw in the notes. Format: 1. rec\\n2. rec",
-  "why_it_matters": "3-4 sentences on business impact — revenue at stake, batch viability, campaign ROI, what this pipeline means for Effilearn's growth trajectory right now.",
-  "biggest_bottleneck": "One precise sentence naming the single biggest conversion killer right now based on the actual data.",
-  "top_priority_leads": ["name1", "name2", "name3", "name4"]
+  "what_happened": "4-5 sharp sentences analysing outcomes. What patterns did you see across calls? What is working, what is failing? Name specific leads as examples. Be brutally honest.",
+  "what_can_be_done": "Prioritised action list (5-6 items). Name specific leads for each action. Format: 1. action\\n2. action\\n3. action",
+  "what_will_happen": "3-4 honest sentences. If Tushar continues at this pace without changes, what happens? Give realistic enrollment and revenue estimates based on the data.",
+  "what_should_happen": "Strategic recommendations (5-6 items). Address the specific objections and patterns you saw in the notes. Format: 1. rec\\n2. rec\\n3. rec",
+  "why_it_matters": "3-4 sentences on business impact. Revenue at stake, batch viability, Meta campaign ROI, what failing to convert these leads means for Effilearn long-term.",
+  "biggest_bottleneck": "One precise sentence — the single biggest thing killing conversions right now based on the actual data.",
+  "top_priority_leads": ["name1","name2","name3","name4"]
 }`;
 
   try {
     const resp = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
       {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.4, maxOutputTokens: 2000 }
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          contents:[{parts:[{text:prompt}]}],
+          generationConfig:{temperature:0.35, maxOutputTokens:2200}
         })
       }
     );
     const data = await resp.json();
-    if (data.error) throw new Error(data.error.message);
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const clean = raw.replace(/```json|```/g, '').trim();
+    if(data.error) throw new Error(data.error.message);
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    const clean = raw.replace(/```json|```/g,'').trim();
     const ins = JSON.parse(clean);
+    saveCache(ins);
+    const btn = document.getElementById('insBtn');
+    btn.textContent = '↻ Regenerate Insights';
+    const now = new Date();
+    document.getElementById('insMeta').innerHTML = `Last generated: <b>${now.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})} ${now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</b> · Cached 24 hrs`;
     renderInsights(ins);
   } catch(e) {
-    // Fallback to smart JS engine if Gemini fails
-    console.warn('Gemini failed, falling back to JS engine:', e.message);
-    insDiv.innerHTML = `<div class="ins-loading" style="color:var(--warm)">⚠️ Gemini error: ${e.message}. Falling back to computed insights…</div>`;
-    setTimeout(() => {
-      try { renderInsights(computeSmartInsights(leads)); }
-      catch(e2) { insDiv.innerHTML = '<div class="ins-loading" style="color:var(--warm)">Insights unavailable. Check console.</div>'; }
-    }, 1500);
+    document.getElementById('insBtn').disabled = false;
+    document.getElementById('insBtn').textContent = '↻ Retry';
+    document.getElementById('insights-body').innerHTML = `<div class="ins-loading" style="color:var(--hot)">⚠️ Gemini error: ${esc(e.message)}. Check your API key or try again.</div>`;
   }
 }
 
-function computeSmartInsights(leads) {
-  const m = computeMetrics(leads);
-  const n = i => (leads[i] ? (leads[i].notes||'') : '').toLowerCase();
-
-  // Pattern detection
-  const emiLeads     = leads.filter((_,i) => n(i).includes('emi') || n(i).includes('installment'));
-  const parentLeads  = leads.filter((_,i) => n(i).includes('parent') || n(i).includes('guardian') || n(i).includes('father') || n(i).includes('mother'));
-  const degreeLeads  = leads.filter((_,i) => n(i).includes('degree') || n(i).includes('certificate'));
-  const diplomaLeads = leads.filter((_,i) => n(i).includes('diploma'));
-  const hotLeads     = leads.filter(l => l.bucket === 'Hot');
-  const warmLeads    = leads.filter(l => l.bucket === 'Warm');
-  const coldLeads    = leads.filter(l => l.bucket === 'Cold');
-  const cbLeads      = leads.filter(l => l.bucket === 'Callback');
-  const ncLeads      = leads.filter(l => l.bucket === 'NC');
-  const newLeadList  = leads.filter(l => l.bucket === 'New');
-  const interested   = leads.filter(l => (l.callStatus||'').toLowerCase() === 'interested');
-  const organicLeads = leads.filter(l => (l.source||'').toLowerCase().includes('organic') || (l.source||'').toLowerCase().includes('whatsapp'));
-  const activePipe   = m.hot + m.warm + m.cold + m.callbacks;
-  const priorityLeads = [...hotLeads, ...warmLeads.filter(l => (l.notes||'').length > 30)].slice(0, 4).map(l => l.name);
-
-  // ── WHAT HAPPENED
-  let wh = `Out of ${m.total} leads, ${m.connected} connected (${m.connRate}% of valid numbers) and ${interested.length} showed active interest. `;
-  wh += m.hot === 0
-    ? 'No hot leads exist yet — the pipeline has interest but no one is on the verge of paying. '
-    : `${hotLeads.map(l=>l.name).join(' & ')} ${m.hot===1?'is':'are'} the only hot lead${m.hot>1?'s':''} — closest to converting. `;
-  if (emiLeads.length) wh += `Price friction surfaced in ${emiLeads.length} call${emiLeads.length>1?'s':''} with EMI/installment requests. `;
-  if (organicLeads.length && hotLeads.some(l => (l.source||'').toLowerCase().includes('organic') || (l.source||'').toLowerCase().includes('whatsapp')))
-    wh += 'Organic/WhatsApp leads are converting warmer than paid Meta leads — quality over quantity is showing. ';
-  if (m.invalid) wh += `${m.invalid} invalid number${m.invalid>1?'s':''} indicate low-quality ad targeting or form fraud.`;
-
-  // ── WHAT CAN BE DONE
-  const can = [];
-  if (hotLeads.length) can.push(`Call ${hotLeads.map(l=>l.name).join(' & ')} first — today — these are your only hot lead${hotLeads.length>1?'s':''}. Every hour you wait increases drop risk.`);
-  if (emiLeads.length) can.push(`Send a structured EMI offer to ${emiLeads.slice(0,3).map(l=>l.name).join(', ')}${emiLeads.length>3?' + others':''} right now: ₹2,000 today to reserve seat → ₹2,500 week 2 → ₹3,000 week 4. This unblocks ${emiLeads.length} stalled lead${emiLeads.length>1?'s':''}.`);
-  if (warmLeads.length) can.push(`Run a 90-min warm-lead blitz: call all ${m.warm} warm leads back-to-back. Script: confirm batch start date, mention only ${Math.max(1,25-0)} seats left, offer a 24-hr booking window.`);
-  if (cbLeads.length) can.push(`Honour ${m.callbacks} pending callback${m.callbacks>1?'s':''} (${cbLeads.slice(0,3).map(l=>l.name).join(', ')}${cbLeads.length>3?'…':''}) before calling any new leads — these people asked you to call them.`);
-  if (ncLeads.length) can.push(`WhatsApp message all ${m.nc} NC leads first: "Hi [name], tried calling about Effilearn Web Dev — best course to start your tech career. Can we connect for 5 min today?" Then call the ones who reply.`);
-  if (newLeadList.length) can.push(`${newLeadList.map(l=>l.name).join(', ')} ${newLeadList.length===1?'is':'are'} untouched — call within the hour. Lead intent drops by ~80% after 24 hrs.`);
-
-  // ── WHAT WILL HAPPEN
-  const realConv = Math.max(1, Math.round(m.hot * 0.8 + m.warm * 0.35 + m.cold * 0.08 + m.callbacks * 0.2));
-  let will = `At the current conversion pattern, you can realistically expect ${realConv} enrollment${realConv>1?'s':''} from this pipeline if all follow-ups are completed this week. `;
-  if (emiLeads.length) will += `Without a structured EMI plan, ${emiLeads.length} price-sensitive lead${emiLeads.length>1?'s':''} will likely go cold — that's ₹${(emiLeads.length*8000).toLocaleString('en-IN')} walking away. `;
-  will += `${m.nc} NC leads that don't get a second touch within 48 hours will convert to permanent drops. `;
-  if (m.hot === 0) will += 'Without a hot lead in the pipeline, the first enrollment is likely 1–2 weeks away if warm leads are pursued aggressively.';
-
-  // ── WHAT SHOULD HAPPEN
-  const should = [];
-  should.push(`Create a fixed EMI brochure (PDF/WhatsApp image) with the 3-installment plan and send to every lead who hesitates on price — stop negotiating this individually on every call.`);
-  if (degreeLeads.length) should.push(`Build a "No degree needed" objection script: ${degreeLeads.length} lead${degreeLeads.length>1?'s':''} questioned job prospects without a degree. Prepare 2–3 real placement/project examples to counter this in 60 seconds.`);
-  if (parentLeads.length) should.push(`Create a 1-page parent-facing summary: ${parentLeads.length} lead${parentLeads.length>1?'s':''} needed family approval. Give them a shareable doc explaining the course, ROI, and payment plan — so they can convince their parents for you.`);
-  should.push(`Structure the daily calling routine: Hot leads (first 30 min) → Warm + Callbacks (next 90 min) → NC WhatsApp (last 30 min). Currently calls are reactive, not sequenced.`);
-  should.push(`Add a lead scoring note in every call log: write "Hot / Warm / Cold / Drop" within 2 min of ending the call — the sheet has gaps where temperature is blank for days.`);
-  if (organicLeads.length) should.push(`Activate a referral loop: ask every warm/hot lead for 1 classmate referral. Organic leads are converting better — this is your cheapest acquisition channel.`);
-
-  // ── WHY IT MATTERS
-  const potRev = activePipe * 7499;
-  const batchNeeded = 25;
-  let why = `The active pipeline of ${activePipe} leads represents up to ₹${potRev.toLocaleString('en-IN')} in potential revenue — enough to fill ${Math.floor(potRev/7499/batchNeeded*10)/10} batch${potRev/7499 >= batchNeeded ? 'es' : ''} at 25 students. `;
-  why += `You currently have 0 enrollments — every day without a close is a day of Meta ad spend with no return. `;
-  if (emiLeads.length) why += `The ${emiLeads.length} EMI leads alone are worth ₹${(emiLeads.length*8000).toLocaleString('en-IN')} — this single objection, if solved with a clear plan, could be the difference between a viable batch and another restart. `;
-  why += `Converting this pipeline now builds the credibility, testimonials, and referrals that make every future batch cheaper to fill.`;
-
-  // ── BOTTLENECK
-  let bottleneck;
-  if (emiLeads.length >= 3)
-    bottleneck = `Price friction: ${emiLeads.length} leads asked for EMI — the ₹7,499 upfront fee is the single biggest conversion blocker right now.`;
-  else if (m.hot === 0 && m.warm === 0)
-    bottleneck = 'No warm or hot leads: the team is connecting but failing to qualify — calls are informational, not conversion-focused.';
-  else if (m.nc > m.connected * 0.4)
-    bottleneck = `Reachability: ${m.nc} leads (${Math.round(m.nc/m.total*100)}%) have never been connected — a large portion of the pipeline is invisible.`;
-  else if (parentLeads.length >= 2)
-    bottleneck = `Guardian dependency: ${parentLeads.length} leads need parental approval — there's no material to help them close the conversation at home.`;
-  else if (m.dropped >= m.total * 0.3)
-    bottleneck = `High drop rate: ${m.dropped} of ${m.total} leads dropped (${Math.round(m.dropped/m.total*100)}%) — ad targeting or early call experience needs immediate improvement.`;
-  else
-    bottleneck = `No dominant single bottleneck — biggest opportunity is the ${m.nc} NC leads and ${m.callbacks} pending callbacks that haven't been re-attempted.`;
-
-  return {
-    what_happened: wh.trim(),
-    what_can_be_done: can.map((s,i) => `${i+1}. ${s}`).join('\n'),
-    what_will_happen: will.trim(),
-    what_should_happen: should.map((s,i) => `${i+1}. ${s}`).join('\n'),
-    why_it_matters: why.trim(),
-    biggest_bottleneck: bottleneck,
-    top_priority_leads: priorityLeads,
-  };
-}
-
 function renderInsights(ins) {
-  const insDiv = document.getElementById('insights-body');
-
   const fmtList = txt => esc(txt||'')
-    .replace(/\\n/g,'<br>')
-    .replace(/\n/g,'<br>')
-    .replace(/(\d+)\.\s/g,'<br><b>$1.</b> ')
-    .replace(/^<br>/,'');
-
-  insDiv.innerHTML = `
+    .replace(/\\n/g,'<br>').replace(/\n/g,'<br>')
+    .replace(/(\d+)\.\s/g,'<br><b>$1.</b> ').replace(/^<br>/,'');
+  document.getElementById('insights-body').innerHTML = `
     <div class="ins-grid">
       <div class="ins-card pink">
         <div class="ins-icon">📊</div>
-        <div class="ins-content">
-          <div class="ins-title">What Happened</div>
-          <div class="ins-text">${fmtList(ins.what_happened)}</div>
-        </div>
+        <div class="ins-content"><div class="ins-title">What Happened</div><div class="ins-text">${fmtList(ins.what_happened)}</div></div>
       </div>
       <div class="ins-card purple">
         <div class="ins-icon">⚡</div>
-        <div class="ins-content">
-          <div class="ins-title">What Can Be Done</div>
-          <div class="ins-text">${fmtList(ins.what_can_be_done)}</div>
-        </div>
+        <div class="ins-content"><div class="ins-title">What Can Be Done</div><div class="ins-text">${fmtList(ins.what_can_be_done)}</div></div>
       </div>
       <div class="ins-card orange">
         <div class="ins-icon">🔮</div>
-        <div class="ins-content">
-          <div class="ins-title">What Will Happen</div>
-          <div class="ins-text">${fmtList(ins.what_will_happen)}</div>
-        </div>
+        <div class="ins-content"><div class="ins-title">What Will Happen</div><div class="ins-text">${fmtList(ins.what_will_happen)}</div></div>
       </div>
       <div class="ins-card green">
         <div class="ins-icon">🎯</div>
-        <div class="ins-content">
-          <div class="ins-title">What Should Happen</div>
-          <div class="ins-text">${fmtList(ins.what_should_happen)}</div>
-        </div>
+        <div class="ins-content"><div class="ins-title">What Should Happen</div><div class="ins-text">${fmtList(ins.what_should_happen)}</div></div>
       </div>
-      <div class="ins-card pink full-width" style="border-left-color:#ffb700;background:rgba(255,183,0,.04)">
+      <div class="ins-card gold full-width">
         <div class="ins-icon">💰</div>
-        <div class="ins-content">
-          <div class="ins-title" style="color:#ffb700">Why It Matters</div>
-          <div class="ins-text">${fmtList(ins.why_it_matters||'—')}</div>
-        </div>
+        <div class="ins-content"><div class="ins-title" style="color:var(--gold)">Why It Matters</div><div class="ins-text">${fmtList(ins.why_it_matters)}</div></div>
       </div>
       <div class="ins-card grey full-width">
         <div class="ins-icon">🚧</div>
         <div class="ins-content">
           <div class="ins-title">Biggest Bottleneck Right Now</div>
           <div class="ins-text">${esc(ins.biggest_bottleneck||'—')}</div>
-          ${ins.top_priority_leads?.length ? `
-          <div class="ins-leads">
-            <span style="font-size:11px;color:var(--dim);margin-right:6px">Priority leads →</span>
-            ${ins.top_priority_leads.map(n=>`<span class="plead">${esc(n)}</span>`).join('')}
-          </div>` : ''}
+          ${ins.top_priority_leads?.length ? `<div class="ins-leads"><span style="font-size:11px;color:var(--dim);margin-right:6px">Priority →</span>${ins.top_priority_leads.map(n=>`<span class="plead">${esc(n)}</span>`).join('')}</div>`:''}
         </div>
       </div>
     </div>`;
 }
 
-// ─── HELPERS ─────────────────────────────────────────────────
-function updateTimestamp() {
-  setText('lastUpdated', 'Synced ' + new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'}));
-}
-function showError(msg) {
-  const el = document.getElementById('errorBox');
-  if (el) { el.textContent = msg; el.style.display = 'block'; }
-  document.getElementById('loadOverlay').style.display = 'none';
-}
-window.triggerRefresh = function() {
-  document.getElementById('loadOverlay').style.display = 'flex';
-  loadSheet();
-};
+// ── HELPERS
+function updateTimestamp(){ setText('lastUpdated','Synced '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})); }
+function showError(msg){ const el=document.getElementById('errorBox'); if(el){el.textContent=msg;el.style.display='block';} document.getElementById('loadOverlay').style.display='none'; }
+window.triggerRefresh = function(){ document.getElementById('loadOverlay').style.display='flex'; loadSheet(); };
 
-// ─── INIT ────────────────────────────────────────────────────
+// ── INIT
 document.getElementById('footerDate').textContent = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
 loadSheet();
 setInterval(loadSheet, REFRESH_MS);
