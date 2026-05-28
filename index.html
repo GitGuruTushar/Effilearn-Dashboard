@@ -713,34 +713,49 @@ Return ONLY a valid JSON object. No markdown, no backticks, no extra text before
   "top_priority_leads": ["name1","name2","name3","name4"]
 }`;
 
-  try {
-    const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
-      {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          contents:[{parts:[{text:prompt}]}],
-          generationConfig:{temperature:0.35, maxOutputTokens:2200}
-        })
-      }
-    );
-    const data = await resp.json();
-    if(data.error) throw new Error(data.error.message);
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text||'';
-    const clean = raw.replace(/```json|```/g,'').trim();
-    const ins = JSON.parse(clean);
-    saveCache(ins);
-    const btn = document.getElementById('insBtn');
-    btn.textContent = '↻ Regenerate Insights';
-    const now = new Date();
-    document.getElementById('insMeta').innerHTML = `Last generated: <b>${now.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})} ${now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</b> · Cached 24 hrs`;
-    renderInsights(ins);
-  } catch(e) {
-    document.getElementById('insBtn').disabled = false;
-    document.getElementById('insBtn').textContent = '↻ Retry';
-    document.getElementById('insights-body').innerHTML = `<div class="ins-loading" style="color:var(--hot)">⚠️ Gemini error: ${esc(e.message)}. Check your API key or try again.</div>`;
+  // Try models in order until one works
+  const MODELS = [
+    {v:'v1beta', m:'gemini-2.0-flash'},
+    {v:'v1beta', m:'gemini-2.0-flash-exp'},
+    {v:'v1beta', m:'gemini-1.5-flash-latest'},
+    {v:'v1',     m:'gemini-1.5-flash'},
+    {v:'v1beta', m:'gemini-1.5-flash'},
+    {v:'v1beta', m:'gemini-pro'},
+  ];
+  const reqBody = JSON.stringify({
+    contents:[{parts:[{text:prompt}]}],
+    generationConfig:{temperature:0.35, maxOutputTokens:2200}
+  });
+  let lastErr = '';
+  for(const {v, m} of MODELS) {
+    try {
+      document.getElementById('insMeta').textContent = 'Trying ' + m + '...';
+      const resp = await fetch(
+        `https://generativelanguage.googleapis.com/${v}/models/${m}:generateContent?key=${GEMINI_KEY}`,
+        {method:'POST', headers:{'Content-Type':'application/json'}, body:reqBody}
+      );
+      const data = await resp.json();
+      if(data.error){ lastErr = '['+m+'] '+data.error.message; continue; }
+      const raw = data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+      if(!raw){ lastErr = '['+m+'] Empty response'; continue; }
+      const clean = raw.replace(/```json/g,'').replace(/```/g,'').trim();
+      const ins = JSON.parse(clean);
+      saveCache(ins);
+      document.getElementById('insBtn').textContent = '\u21bb Regenerate Insights';
+      const now = new Date();
+      document.getElementById('insMeta').innerHTML =
+        'Model: <b>'+m+'</b> &middot; '+now.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})+
+        ' '+now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})+' &middot; Cached 24 hrs';
+      renderInsights(ins);
+      return;
+    } catch(e){ lastErr = '['+m+'] '+e.message; }
   }
+  document.getElementById('insBtn').disabled = false;
+  document.getElementById('insBtn').textContent = '\u21bb Retry';
+  document.getElementById('insights-body').innerHTML =
+    '<div class="ins-loading" style="color:var(--hot)">\u26a0\ufe0f All Gemini models failed.<br>' +
+    '<small style="color:var(--dim)">'+esc(lastErr)+'</small><br><br>' +
+    '<small>Go to <b>console.cloud.google.com</b> \u2192 APIs &amp; Services \u2192 Enable APIs \u2192 search <b>"Generative Language API"</b> \u2192 Enable it for your project. Then retry.</small></div>';
 }
 
 function renderInsights(ins) {
