@@ -408,20 +408,49 @@ let lastHash = '';
 let dateFromVal = '', dateToVal = '';
 
 // ── SHEET LOAD (JSONP)
+let _loadTimer = null;
 function loadSheet() {
   const old = document.getElementById('_gviz');
-  if (old) old.remove();
+  if(old) old.remove();
+  if(_loadTimer) clearTimeout(_loadTimer);
+
+  // Timeout — if callback not fired in 12s, show helpful error
+  _loadTimer = setTimeout(() => {
+    if(document.getElementById('loadOverlay').style.display !== 'none') {
+      document.getElementById('loadOverlay').style.display = 'none';
+      showError(
+        '⚠️ Could not load Google Sheet data. To fix this:\n\n' +
+        '1. Open your Google Sheet\n' +
+        '2. Go to File → Share → Publish to the web\n' +
+        '3. Under "Link", select Sheet: "Leads" and Format: "Web page"\n' +
+        '4. Click Publish → OK\n\n' +
+        'Then reload this page. (Sharing with "anyone with link" alone is not enough — the sheet must be Published to the web.)'
+      );
+    }
+  }, 12000);
+
   const s = document.createElement('script');
   s.id = '_gviz';
-  s.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:_effiData&sheet=Leads&t=${Date.now()}`;
+  // Try with sheet name first
+  s.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:effiSheetCb&sheet=Leads&t=${Date.now()}`;
   s.onerror = () => {
-    showError('Could not load sheet. Ensure it is set to "Anyone with the link can view".');
-    document.getElementById('loadOverlay').style.display = 'none';
+    // Retry without sheet name (picks first sheet)
+    const s2 = document.createElement('script');
+    s2.id = '_gviz2';
+    const old2 = document.getElementById('_gviz2'); if(old2) old2.remove();
+    s2.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:effiSheetCb&t=${Date.now()}`;
+    s2.onerror = () => {
+      clearTimeout(_loadTimer);
+      document.getElementById('loadOverlay').style.display = 'none';
+      showError('⚠️ Sheet not accessible. Go to File → Share → Publish to the web in Google Sheets, then reload.');
+    };
+    document.head.appendChild(s2);
   };
   document.head.appendChild(s);
 }
 
-window._effiData = function(resp) {
+window.effiSheetCb = function(resp) {
+  if(_loadTimer) { clearTimeout(_loadTimer); _loadTimer = null; }
   try {
     const table = resp.table;
     const cm = {};
@@ -857,7 +886,7 @@ function renderInsights(ins) {
 
 // ── HELPERS
 function updateTimestamp(){ setText('lastUpdated','Synced '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})); }
-function showError(msg){ const el=document.getElementById('errorBox'); if(el){el.textContent=msg;el.style.display='block';} document.getElementById('loadOverlay').style.display='none'; }
+function showError(msg){ const el=document.getElementById('errorBox'); if(el){el.style.whiteSpace='pre-line';el.innerHTML=msg.replace(/\n/g,'<br>');el.style.display='block';} document.getElementById('loadOverlay').style.display='none'; }
 window.triggerRefresh = function(){ document.getElementById('loadOverlay').style.display='flex'; loadSheet(); };
 
 
