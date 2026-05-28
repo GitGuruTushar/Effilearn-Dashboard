@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Effilearn · Live Lead Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08060f;--bg2:#100b1a;--panel:#150f20;--panel2:#1a1228;
+  --line:#251838;--line2:#362050;
+  --ink:#f0e8ff;--muted:#9d89be;--dim:#5e4d7a;
+  --pink:#ff3fa0;--pink2:#ff72bb;--pink3:#ffa8d8;
+  --purple:#8b3dff;--purple2:#b06bff;
+  --hot:#ff3b6b;--warm:#ff9d3d;--cold:#3db4ff;
+  --green:#2de8a4;--orange:#ff7b3d;
+  --glow-p:0 0 0 1px rgba(139,61,255,.2),0 20px 60px -20px rgba(139,61,255,.4);
+  --glow-k:0 0 0 1px rgba(255,63,160,.2),0 20px 60px -20px rgba(255,63,160,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Sora',sans-serif;
+  background:
+    radial-gradient(ellipse 1200px 700px at 5% -5%,rgba(139,61,255,.22) 0%,transparent 55%),
+    radial-gradient(ellipse 900px 500px at 95% 0%,rgba(255,63,160,.17) 0%,transparent 50%),
+    var(--bg);
+  color:var(--ink);min-height:100vh;
+  padding:32px clamp(14px,4vw,52px) 80px;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:'Space Mono',monospace}
+
+/* ── LOADING ── */
+#loadOverlay{
+  position:fixed;inset:0;z-index:999;
+  background:rgba(8,6,15,.92);backdrop-filter:blur(8px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+}
+.spinner{
+  width:44px;height:44px;border-radius:50%;
+  border:3px solid rgba(255,63,160,.15);
+  border-top-color:var(--pink);
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-txt{font-size:14px;color:var(--muted);letter-spacing:.5px}
+.load-sub{font-size:12px;color:var(--dim)}
+
+/* ── ERROR ── */
+#errorBox{
+  display:none;max-width:1320px;margin:0 auto 20px;
+  padding:14px 18px;border-radius:12px;
+  background:rgba(255,59,107,.1);border:1px solid rgba(255,59,107,.3);
+  color:#ff8fa8;font-size:13px;line-height:1.6;
+}
+
+/* ── HEADER ── */
+header{max-width:1320px;margin:0 auto 28px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:16px}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{
+  width:48px;height:48px;border-radius:14px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  display:grid;place-items:center;font-weight:800;font-size:22px;color:#fff;
+  box-shadow:0 8px 28px -8px var(--purple);
+}
+.brand h1{font-size:clamp(18px,2.2vw,26px);font-weight:700;letter-spacing:-.4px}
+.brand .sub{color:var(--muted);font-size:12.5px;margin-top:4px}
+.header-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.sync-strip{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.live-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 8px var(--green);
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.85)}}
+.sync-txt{font-size:12px;color:var(--dim);font-family:'Space Mono'}
+.refresh-btn{
+  font-size:12px;padding:7px 14px;border-radius:20px;
+  border:1px solid var(--line2);background:transparent;color:var(--muted);
+  cursor:pointer;font-family:'Sora';transition:.2s;
+}
+.refresh-btn:hover{color:var(--ink);border-color:var(--purple);background:rgba(139,61,255,.08)}
+.tag{font-size:11.5px;padding:6px 12px;border-radius:24px;border:1px solid var(--line2);color:var(--muted);background:rgba(255,255,255,.015)}
+.tag b{color:var(--pink2);font-weight:600}
+
+/* ── NOTICE ── */
+.notice{
+  max-width:1320px;margin:0 auto 14px;padding:12px 16px;border-radius:10px;
+  background:rgba(255,157,61,.07);border:1px solid rgba(255,157,61,.2);
+  font-size:12.5px;color:#ffb96b;display:flex;align-items:center;gap:8px;
+}
+.notice a{color:var(--warm);text-decoration:underline}
+
+/* ── KPIs ── */
+.kpis{max-width:1320px;margin:0 auto 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px}
+.kpi{
+  position:relative;
+  background:linear-gradient(155deg,var(--panel),var(--bg2));
+  border:1px solid var(--line);border-radius:18px;padding:20px 18px 16px;overflow:hidden;
+}
+.kpi::after{content:'';position:absolute;inset:0;background:linear-gradient(155deg,transparent,rgba(139,61,255,.04));pointer-events:none}
+.kpi .num{font-size:38px;font-weight:800;letter-spacing:-1.5px;line-height:1}
+.kpi .lbl{color:var(--muted);font-size:12px;margin-top:8px;letter-spacing:.3px}
+.kpi .pill{
+  position:absolute;top:14px;right:14px;
+  font-size:10px;padding:4px 8px;border-radius:16px;font-weight:700;
+}
+.kpi.accent .num{background:linear-gradient(120deg,var(--pink2),var(--purple2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.pill-g{background:rgba(45,232,164,.12);color:var(--green)}
+.pill-w{background:rgba(255,157,61,.12);color:var(--warm)}
+.pill-d{background:rgba(95,75,120,.2);color:var(--dim)}
+
+/* ── GRID ── */
+.grid{max-width:1320px;margin:14px auto 0;display:grid;grid-template-columns:1.2fr 1fr;gap:14px}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.card{
+  background:linear-gradient(155deg,var(--panel),var(--bg2));
+  border:1px solid var(--line);border-radius:18px;padding:22px;
+}
+.card h3{
+  font-size:11.5px;text-transform:uppercase;letter-spacing:1.8px;
+  color:var(--dim);margin-bottom:20px;font-weight:600;
+  display:flex;align-items:center;gap:8px;
+}
+.card h3 .hdot{width:7px;height:7px;border-radius:50%;background:linear-gradient(120deg,var(--pink),var(--purple))}
+
+/* ── TEMP BARS ── */
+.tbar{margin-bottom:14px}
+.tbar:last-of-type{margin-bottom:0}
+.tbar .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.tbar .tname{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:8px}
+.tbar .tname i{width:10px;height:10px;border-radius:3px;display:inline-block;flex-shrink:0}
+.tval{font-family:'Space Mono';font-size:12.5px;color:var(--muted)}
+.track{height:10px;background:rgba(255,255,255,.04);border-radius:6px;overflow:hidden}
+.tfill{height:100%;border-radius:6px;width:0;transition:width 1.3s cubic-bezier(.2,.8,.2,1)}
+
+/* ── FUNNEL ── */
+.funnel{display:flex;flex-direction:column;gap:9px}
+.frow{display:flex;align-items:center;gap:12px}
+.flbl{width:115px;font-size:12px;color:var(--muted);text-align:right;flex-shrink:0;line-height:1.3}
+.fbar{
+  height:32px;border-radius:8px;display:flex;align-items:center;
+  padding-left:12px;font-weight:700;font-size:13.5px;color:#fff;
+  min-width:28px;width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1);
+  white-space:nowrap;overflow:hidden;font-family:'Space Mono';
+}
+
+/* ── PIPELINE CHIPS ── */
+.pipecard{max-width:1320px;margin:14px auto 0}
+.pipe{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.chip{
+  border:1px solid var(--line);border-radius:14px;padding:14px 13px;
+  background:rgba(255,255,255,.012);cursor:pointer;transition:.25s;
+}
+.chip:hover{border-color:var(--line2);transform:translateY(-3px);box-shadow:var(--glow-p)}
+.chip .cn{font-size:28px;font-weight:800;letter-spacing:-1px;line-height:1}
+.chip .cl{font-size:11px;color:var(--muted);margin-top:5px}
+
+/* ── INSIGHTS ── */
+.inscard{max-width:1320px;margin:14px auto 0}
+.ins-loading{
+  padding:24px;text-align:center;
+  color:var(--muted);font-size:13px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.ins-loading .mini-spin{
+  width:18px;height:18px;border-radius:50%;
+  border:2px solid rgba(255,63,160,.2);border-top-color:var(--pink);
+  animation:spin .7s linear infinite;flex-shrink:0;
+}
+.ins-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.ins-card{
+  border-radius:14px;padding:18px;
+  background:rgba(255,255,255,.02);
+  border:1px solid var(--line);
+  display:flex;gap:14px;
+}
+.ins-card.pink{border-left:3px solid var(--pink)}
+.ins-card.purple{border-left:3px solid var(--purple2)}
+.ins-card.orange{border-left:3px solid var(--orange)}
+.ins-card.green{border-left:3px solid var(--green)}
+.ins-card.grey{border-left:3px solid var(--dim)}
+.full-width{grid-column:1 / -1}
+.ins-icon{font-size:22px;flex-shrink:0;margin-top:2px}
+.ins-title{font-size:11.5px;text-transform:uppercase;letter-spacing:1.4px;color:var(--dim);margin-bottom:8px;font-weight:600}
+.ins-text{font-size:13px;color:var(--muted);line-height:1.7}
+.ins-text br{display:block;margin-top:3px}
+.plead{
+  display:inline-block;font-size:11px;padding:3px 9px;
+  border-radius:12px;background:rgba(255,63,160,.1);
+  color:var(--pink2);margin:4px 4px 0 0;
+}
+.ins-leads{margin-top:10px}
+
+/* ── TABLE ── */
+.tablecard{max-width:1320px;margin:14px auto 0}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;align-items:center}
+.fbtn{
+  font-size:12px;padding:8px 14px;border-radius:24px;
+  border:1px solid var(--line2);background:transparent;
+  color:var(--muted);cursor:pointer;font-family:'Sora';transition:.2s;font-weight:500;
+}
+.fbtn:hover{color:var(--ink);border-color:var(--purple)}
+.fbtn.active{background:linear-gradient(120deg,var(--pink),var(--purple));color:#fff;border-color:transparent}
+.search{
+  margin-left:auto;background:var(--bg2);
+  border:1px solid var(--line2);border-radius:24px;
+  padding:9px 16px;color:var(--ink);font-family:'Sora';
+  font-size:13px;min-width:190px;outline:none;
+}
+.search:focus{border-color:var(--purple)}
+.tablewrap{overflow-x:auto;border-radius:14px;border:1px solid var(--line)}
+table{width:100%;border-collapse:collapse;min-width:820px}
+thead th{
+  position:sticky;top:0;background:var(--panel2);
+  text-align:left;font-size:10.5px;text-transform:uppercase;
+  letter-spacing:.9px;color:var(--dim);padding:12px 14px;font-weight:600;
+  border-bottom:1px solid var(--line2);cursor:pointer;user-select:none;white-space:nowrap;
+}
+thead th:hover{color:var(--pink2)}
+tbody td{padding:13px 14px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr{transition:.15s}
+tbody tr:hover{background:rgba(139,61,255,.055)}
+.lname{font-weight:600;font-size:13.5px}
+.lcontact{font-size:11px;color:var(--dim);margin-top:3px;font-family:'Space Mono'}
+.profile{font-size:11px;color:var(--dim);margin-top:4px;font-style:italic}
+.badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:16px;display:inline-block;white-space:nowrap}
+.b-hot{background:rgba(255,59,107,.14);color:#ff7a92}
+.b-warm{background:rgba(255,157,61,.14);color:var(--warm)}
+.b-cold{background:rgba(61,180,255,.14);color:var(--cold)}
+.b-cb{background:rgba(176,107,255,.14);color:var(--purple2)}
+.b-nc{background:rgba(94,77,122,.18);color:#8e7ab0}
+.b-later{background:rgba(255,210,61,.12);color:#ffd23d}
+.b-drop{background:rgba(100,90,120,.14);color:#8a80a4}
+.b-new{background:rgba(45,232,164,.12);color:var(--green)}
+.note{color:var(--muted);font-size:12.5px;line-height:1.55;max-width:400px}
+.note em{color:var(--dim);font-style:italic;font-size:11.5px}
+.dimtxt{color:var(--dim);font-family:'Space Mono';font-size:11.5px;white-space:nowrap}
+.smalltxt{font-family:'Space Mono';font-size:11.5px;color:var(--cold)}
+.count-note{font-size:11.5px;color:var(--dim);margin-top:10px;text-align:right}
+
+/* ── FOOTER ── */
+footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);font-size:11.5px;letter-spacing:.3px;line-height:1.8}
+
+/* ── EMPTY ── */
+.empty-state{padding:42px;text-align:center;color:var(--dim);font-size:14px}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loadOverlay">
+  <div class="spinner"></div>
+  <div class="load-txt">Syncing leads from Google Sheets…</div>
+  <div class="load-sub">Showing last 500 leads · Auto-refreshes every 5 min</div>
+</div>
+
+<!-- Error -->
+<div id="errorBox"></div>
+
+<!-- Header -->
+<header>
+  <div class="brand">
+    <div class="logo">E</div>
+    <div>
+      <h1>Lead Intelligence Dashboard</h1>
+      <div class="sub">Effilearn · Web Dev Cohort · Live from Google Sheets</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="sync-strip">
+      <div class="live-dot"></div>
+      <span class="sync-txt" id="lastUpdated">Syncing…</span>
+      <button class="refresh-btn" onclick="triggerRefresh()">↻ Refresh</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+      <span class="tag">Max leads · <b>500</b></span>
+      <span class="tag">Campaign · <b>Meta 21 May</b></span>
+      <span class="tag" id="headerTotal">Total · <b>—</b></span>
+    </div>
+  </div>
+</header>
+
+<!-- Sheet-public notice -->
+<div class="notice">
+  ⚠️ For live sync to work, your Google Sheet must be set to <strong>"Anyone with the link can view"</strong>.
+  Go to <em>Share → Change to anyone with the link → Viewer → Done</em>. You only need to do this once.
+</div>
+
+<!-- KPIs -->
+<section class="kpis">
+  <div class="kpi accent"><div class="num" id="kpi-total">—</div><div class="lbl">Total Leads</div><span class="pill pill-g">Live</span></div>
+  <div class="kpi"><div class="num" id="kpi-connected">—</div><div class="lbl">Connected</div><span class="pill pill-g" id="kpi-conn-pct">—</span></div>
+  <div class="kpi"><div class="num" id="kpi-interested">—</div><div class="lbl">Interested</div><span class="pill pill-w">Active</span></div>
+  <div class="kpi"><div class="num" id="kpi-hot" style="color:var(--hot)">—</div><div class="lbl">Hot / Ready</div><span class="pill pill-w">Top priority</span></div>
+  <div class="kpi"><div class="num" id="kpi-dropped" style="color:var(--dim)">—</div><div class="lbl">Dropped</div><span class="pill pill-d">Closed lost</span></div>
+</section>
+
+<!-- Charts -->
+<section class="grid">
+  <div class="card">
+    <h3><span class="hdot"></span> Lead Temperature</h3>
+    <div class="tbar">
+      <div class="top"><span class="tname"><i style="background:var(--hot)"></i>Hot</span><span class="tval" id="lbl-hot">—</span></div>
+      <div class="track"><div class="tfill" id="bar-hot" style="background:linear-gradient(90deg,#ff3b6b,#ff7a9c)"></div></div>
+    </div>
+    <div class="tbar">
+      <div class="top"><span class="tname"><i style="background:var(--warm)"></i>Warm</span><span class="tval" id="lbl-warm">—</span></div>
+      <div class="track"><div class="tfill" id="bar-warm" style="background:linear-gradient(90deg,#ff8a3d,#ffbe4d)"></div></div>
+    </div>
+    <div class="tbar" style="margin-bottom:0">
+      <div class="top"><span class="tname"><i style="background:var(--cold)"></i>Cold</span><span class="tval" id="lbl-cold">—</span></div>
+      <div class="track"><div class="tfill" id="bar-cold" style="background:linear-gradient(90deg,#3d8aff,#4dd4ff)"></div></div>
+    </div>
+    <div class="count-note" style="margin-top:14px" id="tempNote">Of temperature-tagged leads only</div>
+  </div>
+
+  <div class="card">
+    <h3><span class="hdot"></span> Contact Funnel</h3>
+    <div class="funnel">
+      <div class="frow"><span class="flbl">Total leads</span><div class="fbar" id="f-total" style="background:linear-gradient(90deg,var(--purple),#9b5cf5)"></div></div>
+      <div class="frow"><span class="flbl">Valid numbers</span><div class="fbar" id="f-valid" style="background:linear-gradient(90deg,#7240e0,#9654ee)"></div></div>
+      <div class="frow"><span class="flbl">Connected</span><div class="fbar" id="f-connected" style="background:linear-gradient(90deg,#a040cc,#c058f0)"></div></div>
+      <div class="frow"><span class="flbl">Interested</span><div class="fbar" id="f-interested" style="background:linear-gradient(90deg,var(--pink),#ff72bb)"></div></div>
+      <div class="frow"><span class="flbl">Warm + Hot</span><div class="fbar" id="f-warmhot" style="background:linear-gradient(90deg,#ff4d9d,#ffa24d)"></div></div>
+    </div>
+    <div class="count-note" style="margin-top:14px">Connection rate: <span id="f-rate" style="color:var(--green);font-weight:600">—</span> of valid leads</div>
+  </div>
+</section>
+
+<!-- Pipeline chips -->
+<section class="pipecard">
+  <div class="card">
+    <h3><span class="hdot"></span> Pipeline Buckets <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--dim);font-size:11px;margin-left:6px">(click to filter table below)</span></h3>
+    <div class="pipe">
+      <div class="chip" onclick="setFilter('Hot')"><div class="cn" style="color:var(--hot)" id="chip-hot">—</div><div class="cl">🔥 Hot</div></div>
+      <div class="chip" onclick="setFilter('Warm')"><div class="cn" style="color:var(--warm)" id="chip-warm">—</div><div class="cl">🌤 Warm</div></div>
+      <div class="chip" onclick="setFilter('Cold')"><div class="cn" style="color:var(--cold)" id="chip-cold">—</div><div class="cl">❄️ Cold</div></div>
+      <div class="chip" onclick="setFilter('Callback')"><div class="cn" style="color:var(--purple2)" id="chip-cb">—</div><div class="cl">📞 Callbacks</div></div>
+      <div class="chip" onclick="setFilter('NC')"><div class="cn" style="color:var(--muted)" id="chip-nc">—</div><div class="cl">🔇 NC / DNP</div></div>
+      <div class="chip" onclick="setFilter('Later')"><div class="cn" style="color:#ffd23d" id="chip-later">—</div><div class="cl">⏳ For Later</div></div>
+      <div class="chip" onclick="setFilter('Dropped')"><div class="cn" style="color:var(--dim)" id="chip-drop">—</div><div class="cl">✖ Dropped</div></div>
+      <div class="chip" onclick="setFilter('New')"><div class="cn" style="color:var(--green)" id="chip-new">—</div><div class="cl">🆕 Untouched</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- AI Insights -->
+<section class="inscard">
+  <div class="card">
+    <h3><span class="hdot"></span> AI Pipeline Insights <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--dim);font-size:11px;margin-left:6px">— powered by Claude · refreshes with data</span></h3>
+    <div id="insights-body">
+      <div class="ins-loading"><div class="mini-spin"></div>Waiting for data…</div>
+    </div>
+  </div>
+</section>
+
+<!-- Lead Table -->
+<section class="card tablecard">
+  <h3><span class="hdot"></span> All Leads — Responses & Full Detail</h3>
+  <div class="filters">
+    <button class="fbtn active" data-filter="all" onclick="setFilter('all')">All</button>
+    <button class="fbtn" data-filter="Hot" onclick="setFilter('Hot')">Hot</button>
+    <button class="fbtn" data-filter="Warm" onclick="setFilter('Warm')">Warm</button>
+    <button class="fbtn" data-filter="Cold" onclick="setFilter('Cold')">Cold</button>
+    <button class="fbtn" data-filter="Callback" onclick="setFilter('Callback')">Callbacks</button>
+    <button class="fbtn" data-filter="NC" onclick="setFilter('NC')">NC / DNP</button>
+    <button class="fbtn" data-filter="Later" onclick="setFilter('Later')">For Later</button>
+    <button class="fbtn" data-filter="Dropped" onclick="setFilter('Dropped')">Dropped</button>
+    <button class="fbtn" data-filter="New" onclick="setFilter('New')">Untouched</button>
+    <input class="search" id="search" placeholder="Search name, note, course…" oninput="renderTable()">
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr>
+          <th onclick="doSort('name')">Lead ↕</th>
+          <th onclick="doSort('temp')">Status ↕</th>
+          <th onclick="doSort('date')">Came In ↕</th>
+          <th>Response / Notes</th>
+          <th onclick="doSort('fu')">Follow-up ↕</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"><tr><td colspan="5" class="empty-state">Loading leads…</td></tr></tbody>
+    </table>
+  </div>
+  <div class="count-note" id="countNote"></div>
+</section>
+
+<footer>
+  Effilearn Lead Intelligence · Live sync from Google Sheets · Last 500 leads only · Auto-refreshes every 5 min<br>
+  Built for Tushar · <span id="footerDate"></span>
+</footer>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────
+const SHEET_ID = '1JQ0L723-MVwQIeKcdKL25ScfARsJG6P6tNZivfNOuR8';
+const MAX_LEADS = 500;
+const REFRESH_MS = 5 * 60 * 1000;
+
+// ─── STATE ────────────────────────────────────────────────────
+let allLeads = [];
+let currentFilter = 'all';
+let sortKey = 'date';
+let sortDir = -1;
+let lastHash = '';
+
+// ─── LOAD GOOGLE SHEET ────────────────────────────────────────
+function loadSheet() {
+  const old = document.getElementById('_gviz');
+  if (old) old.remove();
+  const s = document.createElement('script');
+  s.id = '_gviz';
+  s.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:_effiData&sheet=Leads&t=${Date.now()}`;
+  s.onerror = () => {
+    showError('⚠️ Could not load sheet. Make sure it is set to "Anyone with the link can view" in Google Sheets Share settings.');
+    document.getElementById('loadOverlay').style.display = 'none';
+  };
+  document.head.appendChild(s);
+}
+
+// ─── GVIZ CALLBACK ────────────────────────────────────────────
+window._effiData = function(resp) {
+  try {
+    const table = resp.table;
+    // Build col index map by label
+    const cm = {};
+    table.cols.forEach((c, i) => { cm[(c.label || c.id || '').trim()] = i; });
+
+    // Positional fallback if label not found
+    const POS = ['Name','Phone','Email','Generated At','Source','Campaign','Type (Course)','POC',
+                 'Connected Status','Call Status','Lead Status','Result Status','Notes','Questions',
+                 'Last Called','Follow-up note','FollowUp Call','Last Connected Status'];
+    POS.forEach((k, i) => { if (!(k in cm)) cm[k] = i; });
+
+    const get = (row, key) => {
+      const idx = cm[key];
+      if (idx === undefined || !row.c || !row.c[idx]) return '';
+      const cell = row.c[idx];
+      if (!cell) return '';
+      if (cell.v === null || cell.v === undefined) return cell.f || '';
+      const v = String(cell.v);
+      if (v.startsWith('Date(')) return parseGvizDate(v);
+      return v;
+    };
+
+    const leads = [];
+    (table.rows || []).forEach(row => {
+      const name = (get(row,'Name') || '').trim();
+      if (!name || name.length < 1) return;
+      leads.push({
+        name, phone: get(row,'Phone'), email: get(row,'Email'),
+        generatedAt: get(row,'Generated At'), source: get(row,'Source'),
+        campaign: get(row,'Campaign'), course: get(row,'Type (Course)'),
+        poc: get(row,'POC'), connectedStatus: get(row,'Connected Status'),
+        callStatus: get(row,'Call Status'), leadStatus: get(row,'Lead Status'),
+        resultStatus: get(row,'Result Status'), notes: get(row,'Notes'),
+        questions: get(row,'Questions'), lastCalled: get(row,'Last Called'),
+        followUpNote: get(row,'Follow-up note'), followUpCall: get(row,'FollowUp Call'),
+        lastConnectedStatus: get(row,'Last Connected Status'),
+      });
+    });
+
+    // Sort by date descending, cap at MAX_LEADS
+    leads.sort((a, b) => smartDate(b.generatedAt) - smartDate(a.generatedAt));
+    const trimmed = leads.slice(0, MAX_LEADS).map(classifyLead);
+
+    // Only re-render + re-insight if data changed
+    const hash = trimmed.length + '|' + (trimmed[0]?.name || '') + '|' + (trimmed[trimmed.length-1]?.name || '');
+    const changed = hash !== lastHash;
+    lastHash = hash;
+    allLeads = trimmed;
+
+    renderDashboard(allLeads);
+    updateTimestamp();
+    document.getElementById('loadOverlay').style.display = 'none';
+
+    if (changed) generateInsights(allLeads);
+  } catch(e) {
+    showError('Parse error: ' + e.message + '. Please refresh.');
+    document.getElementById('loadOverlay').style.display = 'none';
+  }
+};
+
+function parseGvizDate(s) {
+  const m = s.match(/Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?\)/);
+  if (!m) return s;
+  return new Date(+m[1], +m[2], +m[3], +(m[4]||0), +(m[5]||0), +(m[6]||0)).toISOString();
+}
+
+function smartDate(s) {
+  if (!s) return 0;
+  const d = new Date(s);
+  return isNaN(d) ? 0 : d.getTime();
+}
+
+// ─── CLASSIFY LEAD ────────────────────────────────────────────
+function classifyLead(lead) {
+  const ls = (lead.leadStatus || '').toLowerCase().trim();
+  const rs = (lead.resultStatus || '').toLowerCase().trim();
+  const cs = (lead.callStatus || '').toLowerCase().trim();
+  const conn = (lead.connectedStatus || '').toLowerCase().trim();
+  const hasAny = ls || rs || cs || conn;
+
+  let bucket = 'NC', temp = 'NC', badge = 'b-nc';
+
+  if (!hasAny) {
+    bucket = 'New'; temp = 'Untouched'; badge = 'b-new';
+  } else if (rs === 'dropped' || cs === 'not interested' || ls === 'not interested' || ls === 'invalid number' || cs === 'invalid number' || ls.includes('answered disconnected') || cs === 'answered disconnected') {
+    bucket = 'Dropped'; temp = 'Dropped'; badge = 'b-drop';
+  } else if (ls === 'hot') {
+    bucket = 'Hot'; temp = 'Hot'; badge = 'b-hot';
+  } else if (ls === 'warm') {
+    bucket = 'Warm'; temp = 'Warm'; badge = 'b-warm';
+  } else if (ls === 'cold') {
+    bucket = 'Cold'; temp = 'Cold'; badge = 'b-cold';
+  } else if (ls.includes('call back') || ls.includes('requested call') || cs === 'call back') {
+    bucket = 'Callback'; temp = 'Callback'; badge = 'b-cb';
+  } else if (ls === 'for later' || ls.includes('later next month') || ls.includes('will pursue')) {
+    bucket = 'Later'; temp = 'For Later'; badge = 'b-later';
+  } else if (ls.startsWith('nc') || cs === 'dnp' || conn === 'not connected') {
+    bucket = 'NC'; temp = 'NC'; badge = 'b-nc';
+  }
+
+  return { ...lead, bucket, temp, badge };
+}
+
+// ─── METRICS ─────────────────────────────────────────────────
+function computeMetrics(leads) {
+  const bk = {};
+  leads.forEach(l => { bk[l.bucket] = (bk[l.bucket] || 0) + 1; });
+  const connected = leads.filter(l => (l.connectedStatus||'').toLowerCase() === 'connected').length;
+  const interested = leads.filter(l => (l.callStatus||'').toLowerCase() === 'interested').length;
+  const invalid = leads.filter(l => {
+    const ls = (l.leadStatus||'').toLowerCase();
+    const cs = (l.callStatus||'').toLowerCase();
+    return ls === 'invalid number' || cs === 'invalid number';
+  }).length;
+  const total = leads.length;
+  const validLeads = total - invalid;
+  const connRate = validLeads > 0 ? Math.round(connected / validLeads * 100) : 0;
+  return {
+    total, connected, interested, invalid, validLeads, connRate,
+    hot: bk.Hot||0, warm: bk.Warm||0, cold: bk.Cold||0,
+    callbacks: bk.Callback||0, nc: bk.NC||0, later: bk.Later||0,
+    dropped: bk.Dropped||0, newLeads: bk.New||0,
+  };
+}
+
+// ─── RENDER DASHBOARD ─────────────────────────────────────────
+function renderDashboard(leads) {
+  const m = computeMetrics(leads);
+  setText('kpi-total', m.total);
+  setText('kpi-connected', m.connected);
+  setText('kpi-interested', m.interested);
+  setText('kpi-hot', m.hot);
+  setText('kpi-dropped', m.dropped);
+  setText('kpi-conn-pct', m.connRate + '%');
+  setText('headerTotal', '—'); // will set below
+  document.getElementById('headerTotal').innerHTML = `Total · <b>${m.total}</b>`;
+
+  const tTotal = Math.max(1, m.hot + m.warm + m.cold);
+  setBar('bar-hot', m.hot / tTotal * 100);
+  setBar('bar-warm', m.warm / tTotal * 100);
+  setBar('bar-cold', m.cold / tTotal * 100);
+  setText('lbl-hot', `${m.hot} · ${Math.round(m.hot/tTotal*100)}%`);
+  setText('lbl-warm', `${m.warm} · ${Math.round(m.warm/tTotal*100)}%`);
+  setText('lbl-cold', `${m.cold} · ${Math.round(m.cold/tTotal*100)}%`);
+  document.getElementById('tempNote').textContent = `Based on ${tTotal} temperature-tagged lead${tTotal!==1?'s':''}`;
+
+  const fMax = Math.max(1, m.total);
+  setFBar('f-total', m.total, fMax);
+  setFBar('f-valid', m.validLeads, fMax);
+  setFBar('f-connected', m.connected, fMax);
+  setFBar('f-interested', m.interested, fMax);
+  setFBar('f-warmhot', m.warm + m.hot, fMax);
+  setText('f-rate', m.connRate + '%');
+
+  setText('chip-hot', m.hot); setText('chip-warm', m.warm);
+  setText('chip-cold', m.cold); setText('chip-cb', m.callbacks);
+  setText('chip-nc', m.nc); setText('chip-later', m.later);
+  setText('chip-drop', m.dropped); setText('chip-new', m.newLeads);
+
+  renderTable();
+}
+
+function setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+function setBar(id, pct) { setTimeout(() => { const el = document.getElementById(id); if (el) el.style.width = Math.max(0, pct) + '%'; }, 200); }
+function setFBar(id, val, max) {
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    if (el) { el.style.width = Math.max(4, val/max*100) + '%'; el.textContent = val; }
+  }, 200);
+}
+
+// ─── TABLE ───────────────────────────────────────────────────
+function renderTable() {
+  const q = (document.getElementById('search')?.value || '').toLowerCase();
+  const ORDER = { Hot:0, Warm:1, Cold:2, Callback:3, New:4, NC:5, Later:6, Dropped:7 };
+
+  let rows = allLeads.filter(l =>
+    (currentFilter === 'all' || l.bucket === currentFilter) &&
+    (!q || l.name.toLowerCase().includes(q) || (l.notes||'').toLowerCase().includes(q) || (l.questions||'').toLowerCase().includes(q))
+  );
+
+  rows.sort((a, b) => {
+    let r = 0;
+    if (sortKey === 'name') r = a.name.localeCompare(b.name);
+    else if (sortKey === 'date') r = smartDate(a.generatedAt) - smartDate(b.generatedAt);
+    else if (sortKey === 'temp') r = (ORDER[a.bucket]||5) - (ORDER[b.bucket]||5);
+    else if (sortKey === 'fu') r = (a.followUpCall||'').localeCompare(b.followUpCall||'');
+    return r * sortDir;
+  });
+
+  const tbody = document.getElementById('tbody');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No leads match this filter.</td></tr>`;
+  } else {
+    tbody.innerHTML = rows.map(l => `
+      <tr>
+        <td>
+          <div class="lname">${esc(l.name)}</div>
+          <div class="lcontact">${esc(l.phone)}</div>
+          <div class="profile">${esc(parseProfile(l.questions))}</div>
+        </td>
+        <td><span class="badge ${l.badge}">${esc(l.temp)}</span><div style="font-size:10.5px;color:var(--dim);margin-top:5px">${esc(l.callStatus||'')}</div></td>
+        <td class="dimtxt">${fmtDate(l.generatedAt)}</td>
+        <td><div class="note">${esc(l.notes||'—')}</div></td>
+        <td class="smalltxt">${esc(l.followUpCall || l.lastCalled || '—')}</td>
+      </tr>`).join('');
+  }
+  document.getElementById('countNote').textContent = `Showing ${rows.length} of ${allLeads.length} leads (max 500 most recent)`;
+}
+
+function parseProfile(q) {
+  if (!q) return '';
+  return q.split(',').map(p => p.trim()).filter(Boolean).slice(0, 2).join(' · ');
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d);
+  if (isNaN(dt)) return d.slice(0, 10);
+  return dt.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'2-digit'});
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+window.setFilter = function(f) {
+  currentFilter = f;
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  renderTable();
+};
+
+window.doSort = function(k) {
+  if (sortKey === k) sortDir *= -1; else { sortKey = k; sortDir = 1; }
+  renderTable();
+};
+
+// ─── CLAUDE AI INSIGHTS ───────────────────────────────────────
+async function generateInsights(leads) {
+  const insDiv = document.getElementById('insights-body');
+  insDiv.innerHTML = '<div class="ins-loading"><div class="mini-spin"></div>Analyzing your pipeline with AI…</div>';
+
+  const m = computeMetrics(leads);
+  const noteSamples = leads
+    .filter(l => l.notes && l.notes.length > 15)
+    .slice(0, 25)
+    .map(l => `[${l.temp}|${l.bucket}] ${l.name}: ${(l.notes||'').slice(0,220)}`).join('\n');
+
+  const emiLeads = leads.filter(l => (l.notes||'').toLowerCase().includes('emi') || (l.notes||'').toLowerCase().includes('installment')).length;
+  const hotLeads = leads.filter(l => l.bucket === 'Hot').map(l => l.name);
+  const warmLeads = leads.filter(l => l.bucket === 'Warm').map(l => l.name);
+
+  const prompt = `You are a sharp sales consultant analyzing Effilearn's lead pipeline. Effilearn is an Indian edtech startup selling a Web Dev course (₹7,499 one-shot / ₹8,000 EMI). Target: students & fresh graduates in tier 2/3 cities.
+
+LIVE METRICS (last ${m.total} leads):
+Total: ${m.total} | Connected: ${m.connected} (${m.connRate}% of valid) | Interested: ${m.interested}
+Hot: ${m.hot} | Warm: ${m.warm} | Cold: ${m.cold}
+NC/DNP: ${m.nc} | Callbacks pending: ${m.callbacks} | Dropped: ${m.dropped} | Untouched: ${m.newLeads}
+Invalid numbers: ${m.invalid} | EMI requests: ${emiLeads}
+Hot leads: ${hotLeads.join(', ')||'none'}
+Warm leads: ${warmLeads.join(', ')||'none'}
+
+SAMPLE CALL NOTES:
+${noteSamples}
+
+Return ONLY a valid JSON object (no markdown, no backticks, no preamble):
+{
+  "what_happened": "3-4 sharp, data-backed sentences on lead quality, sales activity outcomes, and what the numbers actually show about the team's performance",
+  "what_can_be_done": "Numbered list of 4-5 specific, actionable steps to convert the current pipeline. Include who to call first, what script/offer to use. Format: 1. step\\n2. step\\n3. step",
+  "what_will_happen": "2-3 honest sentences: if the team continues the current pattern, what conversions are realistic? Be specific about numbers — e.g. expected enrollments out of current pipeline",
+  "what_should_happen": "Numbered list of 4-5 strategic recommendations to improve lead quality, call quality, and closing rate. Format: 1. rec\\n2. rec\\n3. rec",
+  "top_priority_leads": ["name1","name2","name3"],
+  "why_it_matters": "3-4 sentences on the direct business and financial impact — revenue at stake, batch viability, campaign ROI, and what these leads mean for Effilearn's growth right now",
+  "biggest_bottleneck": "One precise sentence naming the single biggest conversion killer right now"
+}`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const text = (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const ins = JSON.parse(clean);
+    renderInsights(ins, m);
+  } catch(e) {
+    insDiv.innerHTML = `<div class="ins-loading" style="color:var(--warm)">⚠️ AI insights unavailable (${e.message}). Reload to retry.</div>`;
+  }
+}
+
+function renderInsights(ins, m) {
+  const insDiv = document.getElementById('insights-body');
+
+  const fmtList = txt => esc(txt||'')
+    .replace(/\\n/g,'<br>')
+    .replace(/\n/g,'<br>')
+    .replace(/(\d+)\.\s/g,'<br><b>$1.</b> ')
+    .replace(/^<br>/,'');
+
+  insDiv.innerHTML = `
+    <div class="ins-grid">
+      <div class="ins-card pink">
+        <div class="ins-icon">📊</div>
+        <div class="ins-content">
+          <div class="ins-title">What Happened</div>
+          <div class="ins-text">${fmtList(ins.what_happened)}</div>
+        </div>
+      </div>
+      <div class="ins-card purple">
+        <div class="ins-icon">⚡</div>
+        <div class="ins-content">
+          <div class="ins-title">What Can Be Done</div>
+          <div class="ins-text">${fmtList(ins.what_can_be_done)}</div>
+        </div>
+      </div>
+      <div class="ins-card orange">
+        <div class="ins-icon">🔮</div>
+        <div class="ins-content">
+          <div class="ins-title">What Will Happen</div>
+          <div class="ins-text">${fmtList(ins.what_will_happen)}</div>
+        </div>
+      </div>
+      <div class="ins-card green">
+        <div class="ins-icon">🎯</div>
+        <div class="ins-content">
+          <div class="ins-title">What Should Happen</div>
+          <div class="ins-text">${fmtList(ins.what_should_happen)}</div>
+        </div>
+      </div>
+      <div class="ins-card pink full-width" style="border-left-color:#ffb700;background:rgba(255,183,0,.04)">
+        <div class="ins-icon">💰</div>
+        <div class="ins-content">
+          <div class="ins-title" style="color:#ffb700">Why It Matters</div>
+          <div class="ins-text">${fmtList(ins.why_it_matters||'—')}</div>
+        </div>
+      </div>
+      <div class="ins-card grey full-width">
+        <div class="ins-icon">🚧</div>
+        <div class="ins-content">
+          <div class="ins-title">Biggest Bottleneck Right Now</div>
+          <div class="ins-text">${esc(ins.biggest_bottleneck||'—')}</div>
+          ${ins.top_priority_leads?.length ? `
+          <div class="ins-leads">
+            <span style="font-size:11px;color:var(--dim);margin-right:6px">Priority leads →</span>
+            ${ins.top_priority_leads.map(n=>`<span class="plead">${esc(n)}</span>`).join('')}
+          </div>` : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────
+function updateTimestamp() {
+  setText('lastUpdated', 'Synced ' + new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'}));
+}
+function showError(msg) {
+  const el = document.getElementById('errorBox');
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+  document.getElementById('loadOverlay').style.display = 'none';
+}
+window.triggerRefresh = function() {
+  document.getElementById('loadOverlay').style.display = 'flex';
+  loadSheet();
+};
+
+// ─── INIT ────────────────────────────────────────────────────
+document.getElementById('footerDate').textContent = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+loadSheet();
+setInterval(loadSheet, REFRESH_MS);
+</script>
+</body>
+</html>
