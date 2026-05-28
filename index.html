@@ -659,14 +659,83 @@ window.doSort = function(k) {
   renderTable();
 };
 
-// ─── SMART INSIGHTS ENGINE (no API needed) ────────────────────
-function generateInsights(leads) {
+// ─── GEMINI AI INSIGHTS ───────────────────────────────────────
+const GEMINI_KEY = 'AIzaSyBSNDD4BI6E4zMXhuVltIUjVjblKfR8vvw';
+
+async function generateInsights(leads) {
   const insDiv = document.getElementById('insights-body');
-  insDiv.innerHTML = '<div class="ins-loading"><div class="mini-spin"></div>Computing insights from live data…</div>';
-  setTimeout(() => {
-    try { renderInsights(computeSmartInsights(leads)); }
-    catch(e) { insDiv.innerHTML = '<div class="ins-loading" style="color:var(--warm)">Could not compute insights: ' + e.message + '</div>'; }
-  }, 700);
+  insDiv.innerHTML = '<div class="ins-loading"><div class="mini-spin"></div>Analyzing pipeline with Gemini AI…</div>';
+
+  if (!GEMINI_KEY || GEMINI_KEY === 'PASTE_YOUR_GEMINI_KEY_HERE') {
+    insDiv.innerHTML = '<div class="ins-loading" style="color:var(--warm)">⚠️ Gemini API key not set. Add your key to enable AI insights.</div>';
+    return;
+  }
+
+  const m = computeMetrics(leads);
+
+  // Send ALL notes (not just samples) — full context for Gemini
+  const fullLeadData = leads.map(l =>
+    `Name: ${l.name} | Status: ${l.bucket}/${l.temp} | Call: ${l.callStatus} | Result: ${l.resultStatus||'—'} | Source: ${l.source} | Profile: ${(l.questions||'').slice(0,120)} | Notes: ${(l.notes||'—').slice(0,400)}`
+  ).join('\n');
+
+  const prompt = `You are a sharp, no-nonsense sales coach analyzing Effilearn's live lead pipeline.
+
+ABOUT EFFILEARN:
+- Indian edtech startup, Web Development course
+- Price: ₹7,499 one-shot / ₹8,000 in installments
+- Batch size: 25 students max
+- Target audience: 12th pass / first-year college students, tier 2/3 cities, career starters
+- POC doing all calls: Tushar (founder/CEO)
+- Campaign: Meta ads launched 21 May 2026
+- Current enrollments: 0
+
+PIPELINE METRICS (${m.total} total leads):
+Total: ${m.total} | Valid numbers: ${m.validLeads} | Connected: ${m.connected} (${m.connRate}% connection rate)
+Hot: ${m.hot} | Warm: ${m.warm} | Cold: ${m.cold}
+Callbacks pending: ${m.callbacks} | NC/DNP: ${m.nc} | Dropped: ${m.dropped} | Untouched: ${m.newLeads}
+Interested (call status): ${m.interested} | Invalid numbers: ${m.invalid}
+
+EVERY LEAD — FULL DATA:
+${fullLeadData}
+
+Analyze everything above deeply. Read each lead's notes carefully. Identify patterns across calls. Return ONLY a valid JSON object with no markdown, no backticks, no preamble:
+{
+  "what_happened": "3-5 sharp sentences. What does the data actually show? What patterns appeared across multiple leads? What is the team doing well and poorly? Be specific — name leads, cite note patterns, reference numbers.",
+  "what_can_be_done": "5-6 specific, prioritized actions with lead names where relevant. Format each on a new line starting with a number: 1. action\\n2. action",
+  "what_will_happen": "2-3 honest, data-driven predictions. If current behavior continues unchanged, what happens to this pipeline? Give realistic enrollment estimates.",
+  "what_should_happen": "5-6 strategic recommendations to improve lead quality, call quality, objection handling, and conversion rate. Be specific to what you saw in the notes. Format: 1. rec\\n2. rec",
+  "why_it_matters": "3-4 sentences on business impact — revenue at stake, batch viability, campaign ROI, what this pipeline means for Effilearn's growth trajectory right now.",
+  "biggest_bottleneck": "One precise sentence naming the single biggest conversion killer right now based on the actual data.",
+  "top_priority_leads": ["name1", "name2", "name3", "name4"]
+}`;
+
+  try {
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.4, maxOutputTokens: 2000 }
+        })
+      }
+    );
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const ins = JSON.parse(clean);
+    renderInsights(ins);
+  } catch(e) {
+    // Fallback to smart JS engine if Gemini fails
+    console.warn('Gemini failed, falling back to JS engine:', e.message);
+    insDiv.innerHTML = `<div class="ins-loading" style="color:var(--warm)">⚠️ Gemini error: ${e.message}. Falling back to computed insights…</div>`;
+    setTimeout(() => {
+      try { renderInsights(computeSmartInsights(leads)); }
+      catch(e2) { insDiv.innerHTML = '<div class="ins-loading" style="color:var(--warm)">Insights unavailable. Check console.</div>'; }
+    }, 1500);
+  }
 }
 
 function computeSmartInsights(leads) {
