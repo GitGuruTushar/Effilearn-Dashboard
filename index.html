@@ -799,21 +799,55 @@ async function generateInsights(leads, opts) {
   const nonce = Math.random().toString(36).slice(2,10) + '-' + Date.now();
   const temp  = opts.force ? 0.85 : 0.35;
 
-  // Build full lead data — every field, every lead
-  const fullLeadData = leads.map((l,i) => [
-    `── Lead ${i+1}: ${l.name}`,
-    `   Created   : ${l.generatedAt||'—'}`,
-    `   Phone     : ${l.phone||'—'} | Email: ${l.email||'—'}`,
-    `   Source    : ${l.source||'—'} | Campaign: ${l.campaign||'—'}`,
-    `   Course    : ${l.course||'—'} | POC: ${l.poc||'—'}`,
-    `   Connected : ${l.connectedStatus||'—'} | Last Connected: ${l.lastConnectedStatus||'—'}`,
-    `   Call      : ${l.callStatus||'—'} | Lead Status: ${l.leadStatus||'—'}`,
-    `   Result    : ${l.resultStatus||'—'} | Bucket: ${l.bucket} | Temp: ${l.temp}`,
-    `   Form Resp : ${l.questions||'—'}`,
-    `   Notes     : ${l.notes||'No notes'}`,
-    `   Last Call : ${l.lastCalled||'—'} | Follow-up: ${l.followUpCall||'—'}`,
-    `   FU Note   : ${l.followUpNote||'—'}`,
-  ].join('\n')).join('\n\n');
+  // Compact lead encoding: drop empty fields, short labels, single line per lead.
+  // Notes (the most valuable signal) get a higher per-lead char budget; other
+  // free-text fields are truncated. This typically shrinks the payload 3-4x
+  // vs the verbose "every field even if empty" format, without losing signal.
+  function compactLead(l, i, noteLimit) {
+    const trunc = (s, n) => { s = String(s||'').trim(); return s.length>n ? s.slice(0,n)+'…' : s; };
+    const parts = [];
+    const add = (k,v) => { v = String(v||'').trim(); if(v && v!=='—') parts.push(k+':'+v); };
+    add('temp', l.temp);
+    add('bucket', l.bucket);
+    add('created', l.generatedAt);
+    add('src', l.source);
+    add('camp', l.campaign);
+    add('course', l.course);
+    add('conn', l.connectedStatus);
+    add('lastConn', l.lastConnectedStatus);
+    add('call', l.callStatus);
+    add('status', l.leadStatus);
+    add('result', l.resultStatus);
+    add('lastCalled', l.lastCalled);
+    add('fu', l.followUpCall);
+    if(l.questions)    parts.push('q:'+trunc(l.questions, 80));
+    if(l.followUpNote) parts.push('fuNote:'+trunc(l.followUpNote, 100));
+    if(l.notes)        parts.push('notes:'+trunc(l.notes, noteLimit));
+    return `#${i+1} ${l.name} | ${parts.join(' | ')}`;
+  }
+
+  // Budget the payload so it fits inside Groq's free-tier 12k TPM cap with
+  // headroom for the system prompt, response, and per-request overhead.
+  // ~3.5 chars/token for English; target ~7000 prompt tokens => ~24500 chars
+  // for the lead block. If still over, trim oldest leads first.
+  const CHAR_BUDGET = 24500;
+  let noteLimit = 220;
+  let included  = leads;
+  let leadBlock = included.map((l,i) => compactLead(l,i,noteLimit)).join('\n');
+  // Step 1: shorten notes progressively
+  while(leadBlock.length > CHAR_BUDGET && noteLimit > 60) {
+    noteLimit = Math.max(60, noteLimit - 40);
+    leadBlock = included.map((l,i) => compactLead(l,i,noteLimit)).join('\n');
+  }
+  // Step 2: if still too big, drop oldest leads (already sorted newest-first)
+  while(leadBlock.length > CHAR_BUDGET && included.length > 30) {
+    included = included.slice(0, Math.max(30, Math.floor(included.length*0.85)));
+    leadBlock = included.map((l,i) => compactLead(l,i,noteLimit)).join('\n');
+  }
+  const trimmedNote = included.length < leads.length
+    ? `(Showing ${included.length} most recent of ${leads.length} filtered leads to fit token limit.)`
+    : '';
+  const fullLeadData = leadBlock;
 
   const dateCtx = (dateFromVal||dateToVal)
     ? `DATE FILTER ACTIVE: ${dateFromVal||'any'} to ${dateToVal||'any'} (${leads.length} leads in range)`
@@ -838,8 +872,9 @@ Prospect Ratio: ${m.prospectRate}% | Conversion Rate: ${m.convRate}%
 Callbacks: ${m.callbacks} | NC/DNP: ${m.nc} | Dropped: ${m.dropped} | Untouched: ${m.newLeads}
 Invalid numbers: ${m.invalid}
 
-COMPLETE LEAD DATA (every field, every lead):
+LEAD DATA (compact — one line per lead, empty fields omitted):
 ${fullLeadData}
+${trimmedNote}
 
 Read every lead carefully. Identify patterns across notes. Spot common objections, stalling reasons, geography patterns, timing issues. Be specific — name leads, quote note patterns, give numbers.
 
@@ -885,33 +920,62 @@ Analysis run id: ${nonce}. Vary your phrasing, examples and emphasis from prior 
   // a generic "Could not reach any AI provider" message that hides the cause).
   const errors = [];
 
-  // PRIMARY: Groq — Llama 3.3 70B with JSON response_format to guarantee valid JSON
+  // PRIMARY: Groq — try 70B first, fall back to 8B (much larger TPM budget on
+  // the free tier) if 70B hits the token-per-minute cap.
+  async function callGroq(model, promptText) {
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY()},
+      body: JSON.stringify({
+        model,
+        messages:[
+          {role:'system', content:'You output ONLY a single valid JSON object matching the schema the user requests. No prose, no markdown, no code fences.'},
+          {role:'user',   content:promptText}
+        ],
+        response_format:{type:'json_object'},
+        max_tokens:1800, temperature:temp
+      })
+    });
+    const data = await resp.json();
+    if(data.error) { const e = new Error(data.error.message || 'Groq error'); e.code = data.error.code; throw e; }
+    if(!resp.ok)   throw new Error('HTTP ' + resp.status);
+    const raw = data.choices?.[0]?.message?.content||'';
+    if(!raw) throw new Error('Empty response from Groq');
+    return raw;
+  }
+
   if(GROQ_KEY && GROQ_KEY()) {
-    try {
-      setMeta('Analysing with Groq · Llama 3.3 70B…');
-      const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY()},
-        body: JSON.stringify({
-          model:'llama-3.3-70b-versatile',
-          messages:[
-            {role:'system', content:'You output ONLY a single valid JSON object matching the schema the user requests. No prose, no markdown, no code fences.'},
-            {role:'user',   content:prompt}
-          ],
-          response_format:{type:'json_object'},
-          max_tokens:2400, temperature:temp
-        })
-      });
-      const data = await resp.json();
-      if(data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-      if(!resp.ok)   throw new Error('HTTP ' + resp.status);
-      const raw = data.choices?.[0]?.message?.content||'';
-      if(!raw) throw new Error('Empty response from Groq');
-      finishInsights(parseInsights(raw), 'Groq · Llama 3.3 70B');
-      return;
-    } catch(e) {
-      errors.push('Groq: ' + (e.message || e));
-      setMeta('Groq failed — trying Gemini…');
+    const groqModels = [
+      {id:'llama-3.3-70b-versatile', label:'Llama 3.3 70B'},
+      {id:'llama-3.1-8b-instant',    label:'Llama 3.1 8B (higher TPM)'},
+    ];
+    let activePrompt = prompt;
+    let shrinkAttempts = 0;
+    for(let mi=0; mi<groqModels.length; mi++) {
+      const {id, label} = groqModels[mi];
+      try {
+        setMeta('Analysing with Groq · ' + label + '…');
+        const raw = await callGroq(id, activePrompt);
+        finishInsights(parseInsights(raw), 'Groq · ' + label);
+        return;
+      } catch(e) {
+        const msg = String(e.message||e);
+        const tooBig = /too large|rate.?limit|tokens per minute|TPM|413/i.test(msg);
+        errors.push('Groq '+label+': '+msg);
+        // If the payload is too big for THIS model, halve the leads block and retry
+        // the same model once before moving on to the smaller model.
+        if(tooBig && shrinkAttempts < 2 && included.length > 20) {
+          shrinkAttempts++;
+          included  = included.slice(0, Math.max(20, Math.floor(included.length*0.55)));
+          const newBlock = included.map((l,i) => compactLead(l,i,Math.max(60, noteLimit-40))).join('\n');
+          activePrompt = activePrompt.replace(fullLeadData,
+            newBlock + `\n(Auto-trimmed to ${included.length} most recent leads to fit token limit.)`);
+          setMeta(`Payload too large — retrying with ${included.length} leads…`);
+          mi--; // retry same model
+          continue;
+        }
+        setMeta('Groq '+label+' failed — trying next…');
+      }
     }
   } else {
     errors.push('Groq: no key configured');
@@ -927,7 +991,7 @@ Analysis run id: ${nonce}. Vary your phrasing, examples and emphasis from prior 
     ];
     const gemBody = JSON.stringify({
       contents:[{parts:[{text:prompt}]}],
-      generationConfig:{temperature:temp, maxOutputTokens:2400, responseMimeType:'application/json'}
+      generationConfig:{temperature:temp, maxOutputTokens:1800, responseMimeType:'application/json'}
     });
     for(const {v, m} of GEMINI_MODELS) {
       try {
