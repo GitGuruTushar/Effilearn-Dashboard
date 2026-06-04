@@ -872,11 +872,20 @@ Analysis run id: ${nonce}. Vary your phrasing, examples and emphasis from prior 
   }
 
   function parseInsights(raw) {
-    const clean = raw.replace(/```json/g,'').replace(/```/g,'').trim();
+    // Strip code fences, then extract the outermost {...} so any preamble like
+    // "Here is the analysis:" or trailing prose doesn't break JSON.parse.
+    let clean = String(raw||'').replace(/```json/gi,'').replace(/```/g,'').trim();
+    const first = clean.indexOf('{');
+    const last  = clean.lastIndexOf('}');
+    if(first !== -1 && last !== -1 && last > first) clean = clean.slice(first, last+1);
     return JSON.parse(clean);
   }
 
-  // PRIMARY: Groq — Llama 3.3 70B
+  // Collect real errors so we can show them if everything fails (instead of
+  // a generic "Could not reach any AI provider" message that hides the cause).
+  const errors = [];
+
+  // PRIMARY: Groq — Llama 3.3 70B with JSON response_format to guarantee valid JSON
   if(GROQ_KEY && GROQ_KEY()) {
     try {
       setMeta('Analysing with Groq · Llama 3.3 70B…');
@@ -885,19 +894,27 @@ Analysis run id: ${nonce}. Vary your phrasing, examples and emphasis from prior 
         headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY()},
         body: JSON.stringify({
           model:'llama-3.3-70b-versatile',
-          messages:[{role:'user', content:prompt}],
-          max_tokens:2200, temperature:temp
+          messages:[
+            {role:'system', content:'You output ONLY a single valid JSON object matching the schema the user requests. No prose, no markdown, no code fences.'},
+            {role:'user',   content:prompt}
+          ],
+          response_format:{type:'json_object'},
+          max_tokens:2400, temperature:temp
         })
       });
       const data = await resp.json();
-      if(data.error) throw new Error(data.error.message);
+      if(data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+      if(!resp.ok)   throw new Error('HTTP ' + resp.status);
       const raw = data.choices?.[0]?.message?.content||'';
       if(!raw) throw new Error('Empty response from Groq');
       finishInsights(parseInsights(raw), 'Groq · Llama 3.3 70B');
       return;
     } catch(e) {
-      setMeta('Groq failed (' + e.message + ') — trying Gemini…');
+      errors.push('Groq: ' + (e.message || e));
+      setMeta('Groq failed — trying Gemini…');
     }
+  } else {
+    errors.push('Groq: no key configured');
   }
 
   // FALLBACK: Gemini
@@ -910,7 +927,7 @@ Analysis run id: ${nonce}. Vary your phrasing, examples and emphasis from prior 
     ];
     const gemBody = JSON.stringify({
       contents:[{parts:[{text:prompt}]}],
-      generationConfig:{temperature:temp, maxOutputTokens:2200}
+      generationConfig:{temperature:temp, maxOutputTokens:2400, responseMimeType:'application/json'}
     });
     for(const {v, m} of GEMINI_MODELS) {
       try {
@@ -920,22 +937,27 @@ Analysis run id: ${nonce}. Vary your phrasing, examples and emphasis from prior 
           {method:'POST', headers:{'Content-Type':'application/json'}, body:gemBody}
         );
         const data = await resp.json();
-        if(data.error) continue;
+        if(data.error) { errors.push('Gemini '+m+': '+(data.error.message||'error')); continue; }
         const raw = data.candidates?.[0]?.content?.parts?.[0]?.text||'';
-        if(!raw) continue;
+        if(!raw) { errors.push('Gemini '+m+': empty response'); continue; }
         finishInsights(parseInsights(raw), 'Gemini ' + m);
         return;
-      } catch(e) { /* try next */ }
+      } catch(e) { errors.push('Gemini '+m+': '+(e.message||e)); }
     }
+  } else {
+    errors.push('Gemini: no key configured');
   }
 
-  // All failed
+  // All failed — show the actual errors so the user can act on them
   document.getElementById('insBtn').disabled = false;
   document.getElementById('insBtn').textContent = '↻ Retry';
+  const errList = errors.map(e => '<li>'+esc(e)+'</li>').join('');
   document.getElementById('insights-body').innerHTML =
     '<div class="ins-loading" style="color:var(--hot);flex-direction:column;gap:10px;align-items:flex-start;padding:20px">'+
-    '<b>⚠️ Could not reach any AI provider.</b>'+
-    '<div style="font-size:12.5px;color:var(--muted)">Check your internet connection and try again.</div></div>';
+    '<b>⚠️ AI insights failed.</b>'+
+    '<ul style="font-size:12.5px;color:var(--muted);margin:0;padding-left:18px;line-height:1.6">'+errList+'</ul>'+
+    '<div style="font-size:11.5px;color:var(--dim);margin-top:4px">Tip: if Groq is rate-limited, add a free Gemini key in ⚙ API Keys for automatic fallback.</div>'+
+    '</div>';
 }
 
 function renderInsights(ins) {
