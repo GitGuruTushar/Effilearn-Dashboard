@@ -82,6 +82,21 @@ header{max-width:1320px;margin:0 auto 24px;display:flex;flex-wrap:wrap;justify-c
 .pill-w{background:rgba(255,157,61,.12);color:var(--warm)}
 .pill-p{background:rgba(139,61,255,.14);color:var(--purple2)}
 .pill-d{background:rgba(95,75,120,.2);color:var(--dim)}
+/* ACTIVE PIPELINE */
+.activecard{max-width:1320px;margin:14px auto 0}
+.active-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px}
+.akpi{position:relative;background:rgba(255,255,255,.018);border:1px solid var(--line);border-radius:14px;padding:14px 12px}
+.akpi.accent{background:linear-gradient(155deg,rgba(255,63,160,.1),rgba(139,61,255,.06));border-color:var(--line2)}
+.akpi .anum{font-size:26px;font-weight:800;letter-spacing:-1px;line-height:1}
+.akpi.accent .anum{background:linear-gradient(120deg,var(--pink2),var(--purple2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.akpi .albl{color:var(--muted);font-size:11px;margin-top:7px;letter-spacing:.2px}
+.active-split{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+@media(max-width:720px){.active-split{grid-template-columns:1fr;gap:18px}}
+.active-sub{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:var(--dim);font-weight:600;margin-bottom:14px}
+.active-chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px}
+.achip{border:1px solid var(--line);border-radius:12px;padding:11px 10px;background:rgba(255,255,255,.012);text-align:center}
+.achip .acn{display:block;font-size:22px;font-weight:800;letter-spacing:-.6px;line-height:1}
+.achip .acl{display:block;font-size:10.5px;color:var(--muted);margin-top:5px}
 /* GRID */
 .grid{max-width:1320px;margin:14px auto 0;display:grid;grid-template-columns:1.2fr 1fr;gap:14px}
 @media(max-width:860px){.grid{grid-template-columns:1fr}}
@@ -161,6 +176,7 @@ tbody tr:hover{background:rgba(139,61,255,.055)}
 .b-later{background:rgba(255,210,61,.12);color:var(--gold)}
 .b-drop{background:rgba(100,90,120,.14);color:#8a80a4}
 .b-new{background:rgba(45,232,164,.12);color:var(--green)}
+.b-enrolled{background:linear-gradient(120deg,rgba(45,232,164,.2),rgba(255,210,61,.18));color:#5cf0bd;border:1px solid rgba(45,232,164,.35)}
 .note{color:var(--muted);font-size:12.5px;line-height:1.55;max-width:400px}
 .dimtxt{color:var(--dim);font-family:'Space Mono';font-size:11.5px;white-space:nowrap}
 .smalltxt{font-family:'Space Mono';font-size:11.5px;color:var(--cold)}
@@ -283,14 +299,58 @@ footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);fo
     <span class="pill pill-w">of total</span>
   </div>
   <div class="kpi">
+    <div class="num" id="kpi-enrolled" style="color:var(--green)">—</div>
+    <div class="lbl">Enrolled</div>
+    <span class="pill pill-g">Won 🎓</span>
+  </div>
+  <div class="kpi">
     <div class="num pct" id="kpi-conv-rate" style="color:var(--green)">—</div>
     <div class="lbl">Conversion Rate</div>
-    <span class="pill pill-d">Enrolled</span>
+    <span class="pill pill-d">of total</span>
   </div>
   <div class="kpi">
     <div class="num" id="kpi-dropped" style="color:var(--dim)">—</div>
     <div class="lbl">Dropped</div>
     <span class="pill pill-d">Closed lost</span>
+  </div>
+</section>
+
+<!-- ACTIVE PIPELINE — leads still in play (no Result Status yet) -->
+<section class="activecard">
+  <div class="card" style="border-color:var(--line2);box-shadow:var(--glow-p)">
+    <h3 style="color:var(--pink2)"><span class="hdot"></span> Active Pipeline — Leads Still In Play
+      <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--dim);font-size:11px;margin-left:6px">(no Result Status yet · has phone — click "Active" in the table to see them)</span>
+    </h3>
+    <div class="active-kpis">
+      <div class="akpi accent"><div class="anum" id="a-total">—</div><div class="albl">Active Leads</div></div>
+      <div class="akpi"><div class="anum" id="a-connected">—</div><div class="albl">Connected</div></div>
+      <div class="akpi"><div class="anum" id="a-conn-rate" style="color:var(--green)">—</div><div class="albl">Connection Rate</div></div>
+      <div class="akpi"><div class="anum" id="a-interested" style="color:var(--pink2)">—</div><div class="albl">Interested</div></div>
+      <div class="akpi"><div class="anum" id="a-hw" style="color:var(--warm)">—</div><div class="albl">Hot + Warm</div></div>
+      <div class="akpi"><div class="anum" id="a-prospect-rate" style="color:var(--warm)">—</div><div class="albl">Prospect Ratio</div></div>
+      <div class="akpi"><div class="anum" id="a-callbacks" style="color:var(--purple2)">—</div><div class="albl">Callbacks Due</div></div>
+      <div class="akpi"><div class="anum" id="a-pending" style="color:var(--muted)">—</div><div class="albl">NC / No Answer</div></div>
+    </div>
+    <div class="active-split">
+      <div>
+        <div class="active-sub">Temperature of active leads</div>
+        <div class="tbar"><div class="top"><span class="tname"><i style="background:var(--hot)"></i>Hot</span><span class="tval" id="a-lbl-hot">—</span></div><div class="track"><div class="tfill" id="a-bar-hot" style="background:linear-gradient(90deg,#ff3b6b,#ff7a9c)"></div></div></div>
+        <div class="tbar"><div class="top"><span class="tname"><i style="background:var(--warm)"></i>Warm</span><span class="tval" id="a-lbl-warm">—</span></div><div class="track"><div class="tfill" id="a-bar-warm" style="background:linear-gradient(90deg,#ff8a3d,#ffbe4d)"></div></div></div>
+        <div class="tbar" style="margin-bottom:0"><div class="top"><span class="tname"><i style="background:var(--cold)"></i>Cold</span><span class="tval" id="a-lbl-cold">—</span></div><div class="track"><div class="tfill" id="a-bar-cold" style="background:linear-gradient(90deg,#3d8aff,#4dd4ff)"></div></div></div>
+      </div>
+      <div>
+        <div class="active-sub">Stage breakdown of active leads</div>
+        <div class="active-chips">
+          <div class="achip"><span class="acn" id="a-chip-hot" style="color:var(--hot)">—</span><span class="acl">🔥 Hot</span></div>
+          <div class="achip"><span class="acn" id="a-chip-warm" style="color:var(--warm)">—</span><span class="acl">🌤 Warm</span></div>
+          <div class="achip"><span class="acn" id="a-chip-cold" style="color:var(--cold)">—</span><span class="acl">❄️ Cold</span></div>
+          <div class="achip"><span class="acn" id="a-chip-cb" style="color:var(--purple2)">—</span><span class="acl">📞 Callback</span></div>
+          <div class="achip"><span class="acn" id="a-chip-nc" style="color:var(--muted)">—</span><span class="acl">🔇 NC/DNP</span></div>
+          <div class="achip"><span class="acn" id="a-chip-later" style="color:var(--gold)">—</span><span class="acl">⏳ Later</span></div>
+        </div>
+        <div class="count-note" style="text-align:left;margin-top:12px" id="a-foot">—</div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -330,6 +390,7 @@ footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);fo
   <div class="card">
     <h3><span class="hdot"></span> Pipeline Buckets <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--dim);font-size:11px;margin-left:6px">(click to filter table)</span></h3>
     <div class="pipe">
+      <div class="chip" onclick="setFilter('Enrolled')"><div class="cn" style="color:var(--green)" id="chip-enrolled">—</div><div class="cl">🎓 Enrolled</div></div>
       <div class="chip" onclick="setFilter('Hot')"><div class="cn" style="color:var(--hot)" id="chip-hot">—</div><div class="cl">🔥 Hot</div></div>
       <div class="chip" onclick="setFilter('Warm')"><div class="cn" style="color:var(--warm)" id="chip-warm">—</div><div class="cl">🌤 Warm</div></div>
       <div class="chip" onclick="setFilter('Cold')"><div class="cn" style="color:var(--cold)" id="chip-cold">—</div><div class="cl">❄️ Cold</div></div>
@@ -361,6 +422,8 @@ footer{max-width:1320px;margin:36px auto 0;text-align:center;color:var(--dim);fo
   <h3><span class="hdot"></span> All Leads — Full Detail</h3>
   <div class="filters">
     <button class="fbtn active" data-filter="all" onclick="setFilter('all')">All</button>
+    <button class="fbtn" data-filter="Active" onclick="setFilter('Active')">⚡ Active</button>
+    <button class="fbtn" data-filter="Enrolled" onclick="setFilter('Enrolled')">🎓 Enrolled</button>
     <button class="fbtn" data-filter="Hot" onclick="setFilter('Hot')">Hot</button>
     <button class="fbtn" data-filter="Warm" onclick="setFilter('Warm')">Warm</button>
     <button class="fbtn" data-filter="Cold" onclick="setFilter('Cold')">Cold</button>
@@ -596,9 +659,22 @@ function classifyLead(lead) {
   const cs=(lead.callStatus||'').toLowerCase().trim();
   const conn=(lead.connectedStatus||'').toLowerCase().trim();
   const hasAny = ls||rs||cs||conn;
+  const hasPhone = String(lead.phone||'').replace(/\D/g,'').length >= 7;
+  // "Concluded" = a final outcome has been recorded in Result Status
+  // (Enrolled, Dropped, PNR, Later Next Month, Wants other course).
+  // "Active" = still in play: no Result Status yet AND we have a phone to act on.
+  const concluded = rs !== '';
+  const active     = !concluded && hasPhone;
   let bucket='NC', temp='NC', badge='b-nc';
-  if(!hasAny){ bucket='New'; temp='Untouched'; badge='b-new'; }
-  else if(rs==='dropped'||cs==='not interested'||ls==='not interested'||ls==='invalid number'||cs==='invalid number'||ls.includes('answered disconnected')||cs==='answered disconnected')
+  // A recorded Result Status is the final word — it outranks the temperature
+  // (Lead Status) so a concluded lead never lingers in a prospect bucket.
+  if(rs==='enrolled'){ bucket='Enrolled'; temp='Enrolled'; badge='b-enrolled'; }
+  else if(rs==='dropped'||rs==='wants other course'){ bucket='Dropped'; temp='Dropped'; badge='b-drop'; }
+  else if(rs==='later next month'){ bucket='Later'; temp='For Later'; badge='b-later'; }
+  else if(rs==='pnr'){ bucket='NC'; temp='NC'; badge='b-nc'; }
+  else if(!hasAny){ bucket='New'; temp='Untouched'; badge='b-new'; }
+  // No result yet — bucket by call/lead status (these leads stay "active")
+  else if(cs==='not interested'||ls==='not interested'||ls==='invalid number'||cs==='invalid number'||ls.includes('answered disconnected')||cs==='answered disconnected')
     { bucket='Dropped'; temp='Dropped'; badge='b-drop'; }
   else if(ls==='hot'){ bucket='Hot'; temp='Hot'; badge='b-hot'; }
   else if(ls==='warm'){ bucket='Warm'; temp='Warm'; badge='b-warm'; }
@@ -609,7 +685,7 @@ function classifyLead(lead) {
     { bucket='Later'; temp='For Later'; badge='b-later'; }
   else if(ls.startsWith('nc')||cs==='dnp'||conn==='not connected')
     { bucket='NC'; temp='NC'; badge='b-nc'; }
-  return {...lead, bucket, temp, badge};
+  return {...lead, bucket, temp, badge, active, concluded, hasPhone};
 }
 
 // ── DATE RANGE FILTER
@@ -652,13 +728,16 @@ function computeMetrics(leads) {
   leads.forEach(l => { bk[l.bucket]=(bk[l.bucket]||0)+1; });
   const connected  = leads.filter(l=>(l.connectedStatus||'').toLowerCase()==='connected').length;
   const interested = leads.filter(l=>(l.callStatus||'').toLowerCase()==='interested').length;
-  const enrolled   = 0; // update this when you start tracking enrollments
+  // Enrollments come straight from Result Status = "Enrolled" (bucketed in classifyLead)
+  const enrolled   = bk.Enrolled||0;
   const invalid    = leads.filter(l=>{const ls=(l.leadStatus||'').toLowerCase(),cs=(l.callStatus||'').toLowerCase();return ls==='invalid number'||cs==='invalid number';}).length;
   const total      = leads.length;
   const validLeads = total - invalid;
   const hw         = (bk.Hot||0)+(bk.Warm||0);
+  const active     = leads.filter(l=>l.active).length;     // still in play (no Result Status, has phone)
+  const concluded  = leads.filter(l=>l.concluded).length;  // a final outcome recorded
   return {
-    total, connected, interested, enrolled, invalid, validLeads,
+    total, connected, interested, enrolled, invalid, validLeads, active, concluded,
     hot:bk.Hot||0, warm:bk.Warm||0, cold:bk.Cold||0, hw,
     callbacks:bk.Callback||0, nc:bk.NC||0, later:bk.Later||0,
     dropped:bk.Dropped||0, newLeads:bk.New||0,
@@ -679,6 +758,7 @@ function renderDashboard(leads) {
   setText('kpi-interested',    m.interested);
   setText('kpi-hw',            m.hw);
   setText('kpi-prospect-rate', m.prospectRate+'%');
+  setText('kpi-enrolled',      m.enrolled);
   setText('kpi-conv-rate',     m.convRate+'%');
   setText('kpi-dropped',       m.dropped);
   document.getElementById('headerTotal').innerHTML = `Showing · <b>${m.total}</b>`;
@@ -704,7 +784,35 @@ function renderDashboard(leads) {
   setText('chip-cold',  m.cold); setText('chip-cb',    m.callbacks);
   setText('chip-nc',    m.nc);   setText('chip-later', m.later);
   setText('chip-drop',  m.dropped); setText('chip-new', m.newLeads);
+  setText('chip-enrolled', m.enrolled);
+  renderActive(leads);
   renderTable();
+}
+
+// ── ACTIVE PIPELINE (leads with no Result Status yet · has phone)
+function renderActive(leads) {
+  const am = computeMetrics(leads.filter(l => l.active));
+  setText('a-total',         am.total);
+  setText('a-connected',     am.connected);
+  setText('a-conn-rate',     am.connRate+'%');
+  setText('a-interested',    am.interested);
+  setText('a-hw',            am.hw);
+  setText('a-prospect-rate', am.prospectRate+'%');
+  setText('a-callbacks',     am.callbacks);
+  setText('a-pending',       am.nc);
+  // Temperature bars (share of temperature-tagged active leads)
+  const tT = Math.max(1, am.hot+am.warm+am.cold);
+  setBar('a-bar-hot',  am.hot/tT*100);
+  setBar('a-bar-warm', am.warm/tT*100);
+  setBar('a-bar-cold', am.cold/tT*100);
+  setText('a-lbl-hot',  `${am.hot} · ${Math.round(am.hot/tT*100)}%`);
+  setText('a-lbl-warm', `${am.warm} · ${Math.round(am.warm/tT*100)}%`);
+  setText('a-lbl-cold', `${am.cold} · ${Math.round(am.cold/tT*100)}%`);
+  // Stage chips
+  setText('a-chip-hot', am.hot);   setText('a-chip-warm', am.warm);
+  setText('a-chip-cold', am.cold); setText('a-chip-cb', am.callbacks);
+  setText('a-chip-nc', am.nc);     setText('a-chip-later', am.later);
+  setText('a-foot', `${am.total} active · ${am.connected} connected (${am.connRate}%) · ${am.hw} prospects (${am.prospectRate}%) · awaiting your conclusion`);
 }
 
 function setText(id,v){ const el=document.getElementById(id); if(el) el.textContent=v; }
@@ -714,8 +822,13 @@ function setFBar(id,val,max){ setTimeout(()=>{ const el=document.getElementById(
 // ── TABLE
 function renderTable() {
   const q=(document.getElementById('search')?.value||'').toLowerCase();
-  const ORDER={Hot:0,Warm:1,Cold:2,Callback:3,New:4,NC:5,Later:6,Dropped:7};
-  let rows=activeLeads.filter(l=>(currentFilter==='all'||l.bucket===currentFilter)&&(!q||l.name.toLowerCase().includes(q)||(l.notes||'').toLowerCase().includes(q)||(l.questions||'').toLowerCase().includes(q)));
+  const ORDER={Enrolled:-1,Hot:0,Warm:1,Cold:2,Callback:3,New:4,NC:5,Later:6,Dropped:7};
+  let rows=activeLeads.filter(l=>{
+    const matchFilter = currentFilter==='all' ? true
+                      : currentFilter==='Active' ? l.active
+                      : l.bucket===currentFilter;
+    return matchFilter && (!q||l.name.toLowerCase().includes(q)||(l.notes||'').toLowerCase().includes(q)||(l.questions||'').toLowerCase().includes(q));
+  });
   rows.sort((a,b)=>{
     let r=0;
     if(sortKey==='name') r=a.name.localeCompare(b.name);
@@ -862,15 +975,18 @@ ABOUT EFFILEARN:
 - Target: 12th pass / early college, tier 2-3 cities, career starters
 - Calls done by: Tushar (founder/CEO)
 - Campaign: Meta ads, launched 21 May 2026
-- Enrollments so far: 0
+- Enrollments so far: ${m.enrolled}
 - ${dateCtx}
 
 PIPELINE SUMMARY:
 Total: ${m.total} | Valid: ${m.validLeads} | Connected: ${m.connected} (${m.connRate}%)
+Enrolled (won): ${m.enrolled} | Active / still in play (no Result Status yet): ${m.active} | Concluded: ${m.concluded}
 Hot: ${m.hot} | Warm: ${m.warm} | Cold: ${m.cold} | Hot+Warm: ${m.hw}
 Prospect Ratio: ${m.prospectRate}% | Conversion Rate: ${m.convRate}%
 Callbacks: ${m.callbacks} | NC/DNP: ${m.nc} | Dropped: ${m.dropped} | Untouched: ${m.newLeads}
 Invalid numbers: ${m.invalid}
+
+NOTE: "Active" leads are the ${m.active} leads still in play — focus your conversion advice on these. Enrolled leads are already won; do not pitch them.
 
 LEAD DATA (compact — one line per lead, empty fields omitted):
 ${fullLeadData}
